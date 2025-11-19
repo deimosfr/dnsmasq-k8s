@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dnsmasq-k8s-ui.fullname" . }}
+  labels:
+    app: dnsmasq-k8s-ui
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    {{- if .Values.dns.enabled }}
+    - port: 53
+      targetPort: dns
+      protocol: UDP
+      name: dns
+    {{- end }}
+    {{- if .Values.dhcp.enabled }}
+    - port: 67
+      targetPort: dhcp
+      protocol: UDP
+      name: dhcp
+    {{- end }}
+  selector:
+    app: dnsmasq-k8s-ui

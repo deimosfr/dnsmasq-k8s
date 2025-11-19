@@ -1,0 +1,18 @@
+# Go
+*.exe
+*.test
+*.out
+vendor/
+
+# Docker
+Dockerfile
+.dockerignore
+*.log
+
+# General
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/

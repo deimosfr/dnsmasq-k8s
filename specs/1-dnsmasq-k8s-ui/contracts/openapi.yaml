@@ -1,0 +1,128 @@
+openapi: 3.0.0
+info:
+  title: Dnsmasq Kubernetes UI API
+  version: 1.0.0
+paths:
+  /api/v1/config:
+    get:
+      summary: Get the current dnsmasq configuration
+      responses:
+        '200':
+          description: The current dnsmasq configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DnsmasqConfig'
+    put:
+      summary: Update the dnsmasq configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DnsmasqConfig'
+      responses:
+        '200':
+          description: The updated dnsmasq configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DnsmasqConfig'
+  /api/v1/dns:
+    get:
+      summary: Get the current DNS configuration
+      responses:
+        '200':
+          description: The current DNS configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DNSConfig'
+    put:
+      summary: Update the DNS configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DNSConfig'
+      responses:
+        '200':
+          description: The updated DNS configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DNSConfig'
+  /api/v1/dhcp:
+    get:
+      summary: Get the current DHCP configuration
+      responses:
+        '200':
+          description: The current DHCP configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DHCPConfig'
+    put:
+      summary: Update the DHCP configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DHCPConfig'
+      responses:
+        '200':
+          description: The updated DHCP configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DHCPConfig'
+  /api/v1/dhcp/leases:
+    get:
+      summary: Get the current DHCP leases
+      responses:
+        '200':
+          description: The current DHCP leases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DHCPLease'
+components:
+  schemas:
+    DnsmasqConfig:
+      type: object
+      properties:
+        domain-needed:
+          type: boolean
+        bogus-priv:
+          type: boolean
+        no-resolv:
+          type: boolean
+        server:
+          type: string
+    DNSConfig:
+      type: object
+      properties:
+        address:
+          type: string
+        cname:
+          type: string
+    DHCPConfig:
+      type: object
+      properties:
+        dhcp-range:
+          type: string
+        dhcp-option:
+          type: string
+    DHCPLease:
+      type: object
+      properties:
+        mac-address:
+          type: string
+        ip-address:
+          type: string
+        hostname:
+          type: string

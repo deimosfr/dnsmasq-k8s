@@ -1,0 +1,13 @@
+apiVersion: v1
+entries:
+  dnsmasq-k8s-ui:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-11-23T05:48:18.512389137Z"
+    description: A Helm chart for Dnsmasq K8s UI
+    digest: 05f87f5c3659e5abab58ac9f7a2c0b51f69468c706e12c6eb5cfd3312b50e1c0
+    name: dnsmasq-k8s-ui
+    urls:
+    - https://deimosfr.github.io/dnsmasq-k8s-ui/dnsmasq-k8s-ui-1.0.0.tgz
+    version: 1.0.0
+generated: "2025-11-23T05:48:18.51199028Z"

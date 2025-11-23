@@ -16,6 +16,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Copy README to chart directory
+        run: cp README.md chart/README.md
+
       - name: Publish Helm charts
         uses: stefanprodan/helm-gh-pages@master
         with:

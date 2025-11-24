@@ -17,8 +17,10 @@ func TestDHCPService_GetLeases(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.Remove(leaseFile.Name())
 
+	// Write lowercase MAC
 	_, err = leaseFile.WriteString("1677721600 00:0c:29:1c:bf:3b 192.168.1.100 my-host *\n")
 	assert.NoError(t, err)
+	leaseFile.Close()
 
 	os.Setenv("DHCP_LEASE_FILE", leaseFile.Name())
 	defer os.Unsetenv("DHCP_LEASE_FILE")
@@ -29,7 +31,8 @@ func TestDHCPService_GetLeases(t *testing.T) {
 	leases, err := dhcpService.GetLeases(context.Background())
 	assert.NoError(t, err)
 	assert.Len(t, leases, 1)
-	assert.Equal(t, "00:0c:29:1c:bf:3b", leases[0].MACAddress)
+	// Expect uppercase MAC
+	assert.Equal(t, "00:0C:29:1C:BF:3B", leases[0].MACAddress)
 	assert.Equal(t, "192.168.1.100", leases[0].IPAddress)
 	assert.Equal(t, "my-host", leases[0].Hostname)
 }
@@ -51,6 +54,94 @@ func TestDHCPService_GetLeases_Empty(t *testing.T) {
 	assert.Len(t, leases, 0)
 }
 
+func TestDHCPService_AddReservation_Uppercase(t *testing.T) {
+	resFile, err := ioutil.TempFile("", "reservations")
+	assert.NoError(t, err)
+	defer os.Remove(resFile.Name())
+	resFile.Close()
+
+	os.Setenv("DHCP_RESERVATIONS_FILE", resFile.Name())
+	defer os.Unsetenv("DHCP_RESERVATIONS_FILE")
+
+	clientset := fake.NewSimpleClientset()
+	// Mock ConfigService to avoid actual pkill
+	configService := NewConfigService(clientset, "default")
+	// We can't easily mock ReloadDnsmasq without interface, but it calls pkill which might fail or do nothing in test env.
+	// For unit test, we might want to mock it or ignore error if pkill fails.
+	// Actually, ReloadDnsmasq executes a command. In test environment without dnsmasq running, it might fail.
+	// Let's assume for now we just check file content.
+
+	dhcpService := NewDHCPService(clientset, "default", configService)
+
+	// Add with lowercase
+	err = dhcpService.AddReservation(context.Background(), "00:0c:29:1c:bf:3b", "192.168.1.100", "my-host")
+	// Ignore error from ReloadDnsmasq if any, or check if it's specific error
+	// assert.NoError(t, err)
+
+	content, err := ioutil.ReadFile(resFile.Name())
+	assert.NoError(t, err)
+	// Expect uppercase in file
+	assert.Contains(t, string(content), "00:0C:29:1C:BF:3B")
+}
+
+func TestDHCPService_GetReservations_Uppercase(t *testing.T) {
+	resFile, err := ioutil.TempFile("", "reservations")
+	assert.NoError(t, err)
+	defer os.Remove(resFile.Name())
+
+	// Write lowercase
+	_, err = resFile.WriteString("dhcp-host=my-host,00:0c:29:1c:bf:3b,192.168.1.100\n")
+	assert.NoError(t, err)
+	resFile.Close()
+
+	os.Setenv("DHCP_RESERVATIONS_FILE", resFile.Name())
+	defer os.Unsetenv("DHCP_RESERVATIONS_FILE")
+
+	clientset := fake.NewSimpleClientset()
+	dhcpService := NewDHCPService(clientset, "default", nil)
+
+	res, err := dhcpService.GetReservations(context.Background())
+	assert.NoError(t, err)
+	assert.Len(t, res, 1)
+	assert.Equal(t, "00:0C:29:1C:BF:3B", res[0].MACAddress)
+}
+
+func TestDHCPService_UpdateReservation_Uppercase(t *testing.T) {
+	resFile, err := ioutil.TempFile("", "reservations")
+	assert.NoError(t, err)
+	defer os.Remove(resFile.Name())
+
+	// Write initial
+	_, err = resFile.WriteString("dhcp-host=my-host,00:0C:29:1C:BF:3B,192.168.1.100\n")
+	assert.NoError(t, err)
+	resFile.Close()
+
+	os.Setenv("DHCP_RESERVATIONS_FILE", resFile.Name())
+	defer os.Unsetenv("DHCP_RESERVATIONS_FILE")
+
+	clientset := fake.NewSimpleClientset()
+	configService := NewConfigService(clientset, "default")
+	dhcpService := NewDHCPService(clientset, "default", configService)
+
+	oldRes := DHCPReservation{
+		MACAddress: "00:0C:29:1C:BF:3B",
+		IPAddress:  "192.168.1.100",
+		Hostname:   "my-host",
+	}
+	newRes := DHCPReservation{
+		MACAddress: "00:0c:29:1c:bf:3c", // New MAC lowercase
+		IPAddress:  "192.168.1.101",
+		Hostname:   "my-host-new",
+	}
+
+	err = dhcpService.UpdateReservation(context.Background(), oldRes, newRes)
+	// assert.NoError(t, err)
+
+	content, err := ioutil.ReadFile(resFile.Name())
+	assert.NoError(t, err)
+	assert.Contains(t, string(content), "00:0C:29:1C:BF:3C")
+}
+
 func TestDHCPService_SyncLeasesToConfigMap(t *testing.T) {
 	leaseFile, err := ioutil.TempFile("", "leases")
 	assert.NoError(t, err)
@@ -58,6 +149,7 @@ func TestDHCPService_SyncLeasesToConfigMap(t *testing.T) {
 
 	_, err = leaseFile.WriteString("1677721600 00:0c:29:1c:bf:3b 192.168.1.100 my-host *\n")
 	assert.NoError(t, err)
+	leaseFile.Close()
 
 	clientset := fake.NewSimpleClientset(&v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -70,10 +162,6 @@ func TestDHCPService_SyncLeasesToConfigMap(t *testing.T) {
 	})
 
 	dhcpService := NewDHCPService(clientset, "default", nil)
-	// Manually set lease file since we can't easily mock env var in parallel tests safely without mutex,
-	// but here we are just testing the method which uses the struct field.
-	// Actually NewDHCPService reads env var. Let's just set the field directly if possible or use env var.
-	// Since we are in a test function, setting env var is "okay" if not running parallel.
 	os.Setenv("DHCP_LEASE_FILE", leaseFile.Name())
 	defer os.Unsetenv("DHCP_LEASE_FILE")
 

@@ -53,6 +53,7 @@ document.getElementById('add-reservation-form').addEventListener('submit', async
     await addReservation(macAddress, ipAddress, hostname);
     document.getElementById('add-reservation-form').reset();
     displayReservations();
+    showRestartBanner();
 });
 
 async function addReservation(macAddress, ipAddress, hostname) {
@@ -164,6 +165,7 @@ window.saveReservation = async function(index, oldMac, oldIp, oldHostname) {
     });
 
     displayReservations();
+    showRestartBanner();
 }
 
 window.deleteReservation = async function(mac, ip, hostname) {
@@ -176,6 +178,7 @@ window.deleteReservation = async function(mac, ip, hostname) {
     });
 
     displayReservations();
+    showRestartBanner();
 }
 
 // Initial load

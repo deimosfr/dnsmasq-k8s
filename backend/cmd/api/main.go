@@ -41,6 +41,7 @@ func main() {
 	}
 
 	fmt.Printf("INFO: Starting application in namespace: %s\n", namespace)
+	fmt.Printf("INFO: Starting application version: %s\n", api.Version)
 
 	// Create a new config service.
 	configService := services.NewConfigService(clientset, namespace)

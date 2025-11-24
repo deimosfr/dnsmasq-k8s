@@ -46,7 +46,6 @@ A modern, lightweight web interface for managing **dnsmasq** DNS and DHCP servic
 - **Edit Mode**: Direct editing of `/etc/dnsmasq.conf`
 - **Pre-loaded Templates**: Quick start with recommended configurations
 - Syntax validation before saving
-- Hot-reload support via Supervisor
 
 ### 🎛️ Service Control
 - Start, stop, and restart dnsmasq services from the UI
@@ -90,7 +89,7 @@ replicaCount: 1
 image:
   repository: deimosfr/dnsmasq-k8s-ui
   pullPolicy: IfNotPresent
-  tag: "1.0.0"
+  tag: "1.1.0"
 
 hostNetwork: true
 

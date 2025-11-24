@@ -82,7 +82,15 @@ async function displayLeases() {
             remainingStr = `${hours}h ${minutes}m`;
         }
 
-        const expiryStr = expiryDate.toLocaleString();
+        const expiryStr = expiryDate.toLocaleString('en-GB', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit', 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit',
+            hour12: false 
+        });
 
         row.innerHTML = `
             <td>${lease.mac_address}</td>
@@ -165,6 +173,7 @@ window.saveLease = async function(index, oldMac, oldIp, oldHostname) {
 
     currentlyEditingLease = null;
     displayLeases();
+    showRestartBanner();
 }
 
 window.deleteLease = async function(mac, ip, hostname) {
@@ -177,6 +186,7 @@ window.deleteLease = async function(mac, ip, hostname) {
     });
 
     displayLeases();
+    showRestartBanner();
 }
 
 displayLeases();

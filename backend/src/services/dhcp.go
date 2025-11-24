@@ -71,7 +71,7 @@ func (s *DHCPService) GetLeases(ctx context.Context) ([]DHCPLease, error) {
 		if len(parts) >= 4 {
 			expiry, _ := strconv.ParseInt(parts[0], 10, 64)
 			leases = append(leases, DHCPLease{
-				MACAddress: parts[1],
+				MACAddress: strings.ToUpper(parts[1]),
 				IPAddress:  parts[2],
 				Hostname:   parts[3],
 				ExpiryTime: expiry,
@@ -107,7 +107,7 @@ func (s *DHCPService) GetReservations(ctx context.Context) ([]DHCPReservation, e
 				for _, part := range parts {
 					part = strings.TrimSpace(part)
 					if strings.Contains(part, ":") {
-						res.MACAddress = part
+						res.MACAddress = strings.ToUpper(part)
 					} else if strings.Contains(part, ".") {
 						res.IPAddress = part
 					} else {
@@ -124,6 +124,7 @@ func (s *DHCPService) GetReservations(ctx context.Context) ([]DHCPReservation, e
 }
 
 func (s *DHCPService) AddReservation(ctx context.Context, macAddress, ipAddress, hostname string) error {
+	macAddress = strings.ToUpper(macAddress)
 	// Ensure directory exists
 	dir := filepath.Dir(s.reservationsFile)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -144,15 +145,8 @@ func (s *DHCPService) AddReservation(ctx context.Context, macAddress, ipAddress,
 		return err
 	}
 
-	// We need to close the file before reloading, but defer handles it at end of function.
-	// However, ReloadDnsmasq is external command, so it should be fine if file is flushed.
-	// But to be safe, maybe we should close it explicitly or just rely on OS.
-	// Actually, defer runs after return, so we should probably close it before calling ReloadDnsmasq if we want to be sure.
-	// But wait, defer runs when function returns. So if we call ReloadDnsmasq here, the file is still open.
-	// Let's close it first.
 	f.Close()
-
-	return s.configService.ReloadDnsmasq()
+	return nil
 }
 
 func (s *DHCPService) UpdateReservation(ctx context.Context, oldRes, newRes DHCPReservation) error {
@@ -190,9 +184,10 @@ func (s *DHCPService) modifyReservation(ctx context.Context, target, newRes DHCP
 					}
 				}
 
-				if currentRes.MACAddress == target.MACAddress && currentRes.IPAddress == target.IPAddress && currentRes.Hostname == target.Hostname {
+				if strings.EqualFold(currentRes.MACAddress, target.MACAddress) && currentRes.IPAddress == target.IPAddress && currentRes.Hostname == target.Hostname {
 					found = true
 					if !isDelete {
+						newRes.MACAddress = strings.ToUpper(newRes.MACAddress)
 						// Write in format: dhcp-host=hostname,mac,ip
 						newLines = append(newLines, fmt.Sprintf("dhcp-host=%s,%s,%s", newRes.Hostname, newRes.MACAddress, newRes.IPAddress))
 					}
@@ -211,7 +206,7 @@ func (s *DHCPService) modifyReservation(ctx context.Context, target, newRes DHCP
 		return err
 	}
 
-	return s.configService.ReloadDnsmasq()
+	return nil
 }
 
 func (s *DHCPService) UpdateLease(ctx context.Context, oldLease, newLease DHCPLease) error {
@@ -235,8 +230,9 @@ func (s *DHCPService) UpdateLease(ctx context.Context, oldLease, newLease DHCPLe
 		parts := strings.Fields(line)
 		if len(parts) >= 4 {
 			// parts[1] is mac, parts[2] is ip, parts[3] is hostname
-			if parts[1] == oldLease.MACAddress && parts[2] == oldLease.IPAddress && parts[3] == oldLease.Hostname {
+			if strings.EqualFold(parts[1], oldLease.MACAddress) && parts[2] == oldLease.IPAddress && parts[3] == oldLease.Hostname {
 				found = true
+				newLease.MACAddress = strings.ToUpper(newLease.MACAddress)
 				// Preserve timestamp (parts[0]) and clientid (parts[4] if exists)
 				newLine := fmt.Sprintf("%s %s %s %s", parts[0], newLease.MACAddress, newLease.IPAddress, newLease.Hostname)
 				if len(parts) > 4 {
@@ -257,7 +253,7 @@ func (s *DHCPService) UpdateLease(ctx context.Context, oldLease, newLease DHCPLe
 		return err
 	}
 
-	return s.configService.ReloadDnsmasq()
+	return nil
 }
 
 func (s *DHCPService) DeleteLease(ctx context.Context, lease DHCPLease) error {
@@ -273,7 +269,7 @@ func (s *DHCPService) DeleteLease(ctx context.Context, lease DHCPLease) error {
 	for _, line := range lines {
 		parts := strings.Fields(line)
 		if len(parts) >= 4 {
-			if parts[1] == lease.MACAddress && parts[2] == lease.IPAddress && parts[3] == lease.Hostname {
+			if strings.EqualFold(parts[1], lease.MACAddress) && parts[2] == lease.IPAddress && parts[3] == lease.Hostname {
 				found = true
 				continue // Skip adding this line
 			}
@@ -289,7 +285,7 @@ func (s *DHCPService) DeleteLease(ctx context.Context, lease DHCPLease) error {
 		return err
 	}
 
-	return s.configService.ReloadDnsmasq()
+	return nil
 }
 
 func (s *DHCPService) StartLeaseSync(ctx context.Context) {
@@ -407,7 +403,6 @@ func (s *DHCPService) RestoreLeasesFromConfigMap(ctx context.Context) error {
 		if err := os.WriteFile(s.leaseFile, []byte(content), 0644); err != nil {
 			return err
 		}
-		return s.configService.ReloadDnsmasq()
 	}
 	return nil
 }
@@ -519,7 +514,6 @@ func (s *DHCPService) RestoreReservationsFromConfigMap(ctx context.Context) erro
 		if err := os.WriteFile(s.reservationsFile, []byte(content), 0644); err != nil {
 			return err
 		}
-		return s.configService.ReloadDnsmasq()
 	}
 	return nil
 }

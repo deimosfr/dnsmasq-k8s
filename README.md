@@ -1,4 +1,4 @@
-# Dnsmasq K8s UI
+# Dnsmasq K8s UI [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/dnsmasq-k8s-ui)](https://artifacthub.io/packages/search?repo=dnsmasq-k8s-ui)
 
 A modern, lightweight web interface for managing **dnsmasq** DNS and DHCP services in Kubernetes clusters. Simplify your network management with an intuitive UI for DNS records, DHCP leases, and service configuration. Ideal for DNS & DHCP home labs.
 
@@ -63,18 +63,15 @@ A modern, lightweight web interface for managing **dnsmasq** DNS and DHCP servic
 
 ### Quick Start with Helm
 
-1. **Clone the repository**:
+1. **Install using Helm**:
+   You can find the Helm chart page [here](https://artifacthub.io/packages/helm/dnsmasq-k8s-ui/dnsmasq-k8s-ui):
+
    ```bash
-   git clone https://github.com/deimosfr/dnsmasq-k8s-ui.git
-   cd dnsmasq-k8s-ui
+   helm repo add dnsmasq-k8s-ui https://deimosfr.github.io/dnsmasq-k8s-ui/
+   helm install my-dnsmasq-k8s-ui dnsmasq-k8s-ui/dnsmasq-k8s-ui --version 1.1.0
    ```
 
-2. **Install using Helm**:
-   ```bash
-   helm install dnsmas-k8s-ui ./chart
-   ```
-
-3. **Verify the installation**:
+2. **Verify the installation**:
    ```bash
    kubectl get pods -l app=dnsmas-k8s-ui
    ```

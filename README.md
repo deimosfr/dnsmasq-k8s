@@ -147,3 +147,15 @@ helm uninstall dnsmas-k8s-ui
 kubectl port-forward svc/dnsmasq-k8s-ui 8080:80
 ```
 Then open: http://localhost:8080
+
+---
+
+## 🛠️ Development
+
+### Updating Versions
+
+To update the application version across all files (`version.go`, `Chart.yaml`, `values.yaml`, `README.md`), edit `backend/src/api/version.go` and run:
+
+```bash
+go generate ./backend/src/api/version.go
+```

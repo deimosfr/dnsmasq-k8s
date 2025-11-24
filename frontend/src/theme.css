@@ -149,3 +149,20 @@ body {
 #config-textarea {
   font-size: 0.8rem;
 }
+
+.bg-purple {
+  background-color: #6f42c1 !important;
+  color: white;
+}
+
+.btn-purple {
+  background-color: #6f42c1;
+  border-color: #6f42c1;
+  color: white;
+}
+
+.btn-purple:hover {
+  background-color: #59359a;
+  border-color: #59359a;
+  color: white;
+}

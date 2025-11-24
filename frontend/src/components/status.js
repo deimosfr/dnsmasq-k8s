@@ -7,7 +7,7 @@ async function getStatus() {
 function renderStatus(status) {
     const dnsStatusDiv = document.getElementById('dns-status');
     const dhcpStatusDiv = document.getElementById('dhcp-status');
-    const uptimeDiv = document.getElementById('app-uptime');
+
     const pidDiv = document.getElementById('dnsmasq-pid');
 
     if (dnsStatusDiv) {
@@ -26,9 +26,7 @@ function renderStatus(status) {
         }
     }
     
-    if (uptimeDiv && status.uptime) {
-        uptimeDiv.textContent = status.uptime;
-    }
+
     
     if (pidDiv && status.dnsmasq_pid) {
         pidDiv.textContent = status.dnsmasq_pid;
@@ -41,6 +39,14 @@ function renderStatus(status) {
             const parts = service.split(/\s+/);
             const name = parts[0];
             const state = parts[1];
+            let uptime = '';
+            
+            // Parse uptime if available (usually after "uptime")
+            const uptimeIndex = parts.indexOf('uptime');
+            if (uptimeIndex !== -1 && uptimeIndex + 1 < parts.length) {
+                uptime = parts[uptimeIndex + 1].replace(',', '');
+            }
+
             let badgeClass = 'bg-secondary';
             if (state === 'RUNNING') {
                 badgeClass = 'bg-success';
@@ -54,6 +60,7 @@ function renderStatus(status) {
                 <div>
                     ${name}
                     <span class="badge ${badgeClass} ms-2">${state}</span>
+                    ${uptime ? `<span class="badge bg-purple ms-1">${uptime}</span>` : ''}
                 </div>
                 <div class="btn-group btn-group-sm gap-1" role="group">
                     <button class="btn btn-sm btn-outline-success" onclick="controlSupervisor('${name}', 'start', this)" data-bs-toggle="tooltip" title="Start service">

@@ -52,7 +52,7 @@ function renderConfigEdit(config) {
         <div class="mt-3">
             <button id="save-button" class="btn btn-success">Save</button>
             <button id="cancel-button" class="btn btn-secondary ms-2">Cancel</button>
-            <button id="recommended-button" class="btn ms-2" style="background-color: indigo; border-color: indigo; color: white;">Load Recommended Config</button>
+            <button id="recommended-button" class="btn btn-purple ms-2">Load Recommended Config</button>
         </div>
     `;
 

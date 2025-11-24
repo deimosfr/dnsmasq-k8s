@@ -59,17 +59,6 @@ func (s *ConfigService) UpdateConfig(ctx context.Context, config string) error {
 		return err
 	}
 
-	return s.ReloadDnsmasq()
-}
-
-func (s *ConfigService) ReloadDnsmasq() error {
-	fmt.Println("INFO: Sending SIGHUP to dnsmasq via supervisorctl")
-	// Use supervisorctl signal to send SIGHUP to the dnsmasq process
-	cmd := exec.Command("supervisorctl", "signal", "SIGHUP", "dnsmasq")
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("WARN: Failed to send SIGHUP to dnsmasq: %v\n", err)
-		return err
-	}
 	return nil
 }
 
@@ -122,7 +111,7 @@ func (s *ConfigService) AddDNSEntry(ctx context.Context, recordType, domain, val
 		return err
 	}
 
-	return s.ReloadDnsmasq()
+	return nil
 }
 
 type DNSEntry struct {
@@ -233,7 +222,7 @@ func (s *ConfigService) modifyDNSEntry(ctx context.Context, targetEntry, newEntr
 		return err
 	}
 
-	return s.ReloadDnsmasq()
+	return nil
 }
 
 func (s *ConfigService) validateDnsmasqConfig(config string) error {
@@ -596,5 +585,5 @@ func (s *ConfigService) syncFileIfChanged(filePath, newContent string) error {
 		return err
 	}
 
-	return s.ReloadDnsmasq()
+	return nil
 }

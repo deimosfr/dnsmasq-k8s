@@ -1,13 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "dnsmasq-k8s-ui.fullname" . }}
   labels:
     app: dnsmasq-k8s-ui
 spec:
+  serviceName: {{ include "dnsmasq-k8s-ui.fullname" . }}
   replicas: {{ .Values.replicaCount }}
-  strategy:
-    type: Recreate
   selector:
     matchLabels:
       app: dnsmasq-k8s-ui
@@ -25,6 +24,8 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           env:
+            - name: GIN_MODE
+              value: "release"
             - name: DNS_ENABLED
               value: "{{ .Values.dns.enabled }}"
             - name: DHCP_ENABLED

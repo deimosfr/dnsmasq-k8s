@@ -106,7 +106,9 @@ document.getElementById('add-dns-form').addEventListener('submit', async (event)
         // Reset to default validation (A record)
         updateFormValidation('address');
         displayDNSEntries();
+        showRestartBanner();
     } catch (error) {
+        console.error('Error in add DNS entry handler:', error);
         // Error already shown in addDNSEntry
     }
 });
@@ -241,6 +243,7 @@ window.saveEntry = async function(index, oldType, oldDomain, oldValue) {
         });
 
         displayDNSEntries();
+        showRestartBanner();
     } catch (error) {
         alert('Error updating DNS entry: ' + error.message);
     }
@@ -268,6 +271,7 @@ window.deleteEntry = async function(type, domain, value) {
     });
 
     displayDNSEntries();
+    showRestartBanner();
 }
 
 // Initialize

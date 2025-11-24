@@ -60,7 +60,7 @@ function renderStatus(status) {
                 <div>
                     ${name}
                     <span class="badge ${badgeClass} ms-2">${state}</span>
-                    ${uptime ? `<span class="badge bg-purple ms-1">${uptime}</span>` : ''}
+                    ${uptime ? `<span class="badge bg-purple ms-1" data-bs-toggle="tooltip" title="Uptime">${uptime}</span>` : ''}
                 </div>
                 <div class="btn-group btn-group-sm gap-1" role="group">
                     <button class="btn btn-sm btn-outline-success" onclick="controlSupervisor('${name}', 'start', this)" data-bs-toggle="tooltip" title="Start service">
@@ -144,6 +144,13 @@ window.controlSupervisor = async function(serviceName, action, btn) {
             const errorData = await response.json();
             alert(`Error: ${errorData.error || 'Failed to ' + action + ' service'}`);
             return;
+        }
+        
+        // Hide restart banner if dnsmasq was restarted
+        if (serviceName === 'dnsmasq' && action === 'restart') {
+            if (typeof hideRestartBanner === 'function') {
+                hideRestartBanner();
+            }
         }
         
         // Wait a moment for the service to change state

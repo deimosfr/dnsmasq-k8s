@@ -175,7 +175,8 @@ body {
   z-index: 1030;
   background-color: #ffc107;
   color: #000;
-  padding: 0.75rem 1rem;
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   animation: slideDown 0.3s ease-out;
 }
@@ -204,7 +205,7 @@ body {
 }
 
 .restart-banner-message i {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 .restart-banner-actions {

@@ -165,4 +165,6 @@ window.controlSupervisor = async function(serviceName, action, btn) {
 
 document.addEventListener('DOMContentLoaded', () => {
     displayStatus();
+    // Refresh status every 3 seconds
+    setInterval(displayStatus, 3000);
 });

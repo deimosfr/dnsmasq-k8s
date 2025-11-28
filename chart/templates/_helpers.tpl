@@ -60,3 +60,12 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Validate values
+*/}}
+{{- define "dnsmasq-k8s-ui.validateValues" -}}
+{{- if and (gt (int .Values.replicaCount) 1) .Values.dhcp.enabled }}
+{{- fail "Can't support multiple replicas because of dnsmasq implementation with concurrency issue on a single configmap and no possible diff between 2 versions" }}
+{{- end }}
+{{- end }}

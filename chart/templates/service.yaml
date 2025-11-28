@@ -12,9 +12,15 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: http
+      targetPort: {{ .Values.web.port }}
       protocol: TCP
       name: http
+    {{- if .Values.api.enabled }}
+    - port: {{ .Values.api.servicePort }}
+      targetPort: {{ .Values.api.port }}
+      protocol: TCP
+      name: api
+    {{- end }}
     {{- if .Values.dns.enabled }}
     - port: 53
       targetPort: dns

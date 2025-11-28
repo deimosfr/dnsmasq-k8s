@@ -13,16 +13,26 @@ import (
 )
 
 func main() {
-	// Create a new Gin router without default middleware
-	r := gin.New()
+	// Get configuration from environment variables
+	namespace := os.Getenv("POD_NAMESPACE")
+	if namespace == "" {
+		namespace = "default"
+	}
 
-	// Add recovery middleware
-	r.Use(gin.Recovery())
+	webPort := os.Getenv("WEB_PORT")
+	if webPort == "" {
+		webPort = "8080"
+	}
 
-	// Add custom logger middleware that skips /api/v1/status
-	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
-		SkipPaths: []string{"/api/v1/status"},
-	}))
+	apiPort := os.Getenv("API_PORT")
+	if apiPort == "" {
+		apiPort = "8081"
+	}
+
+	fmt.Printf("INFO: Starting application in namespace: %s\n", namespace)
+	fmt.Printf("INFO: Starting application version: %s\n", api.Version)
+	fmt.Printf("INFO: Web server listening on port: %s\n", webPort)
+	fmt.Printf("INFO: API server listening on port: %s\n", apiPort)
 
 	// Create a new Kubernetes clientset.
 	config, err := clientcmd.BuildConfigFromFlags("", "")
@@ -34,38 +44,22 @@ func main() {
 		panic(err.Error())
 	}
 
-	// Get the namespace from the environment variable.
-	namespace := os.Getenv("POD_NAMESPACE")
-	if namespace == "" {
-		namespace = "default"
-	}
-
-	fmt.Printf("INFO: Starting application in namespace: %s\n", namespace)
-	fmt.Printf("INFO: Starting application version: %s\n", api.Version)
-
-	// Create a new config service.
+	// Create services
 	configService := services.NewConfigService(clientset, namespace)
-
-	// Create a new dhcp service.
 	dhcpService := services.NewDHCPService(clientset, namespace, configService)
-
-	// Create a new status service.
 	statusService := services.NewStatusService()
-
-	// Create a new supervisor service.
 	supervisorService := services.NewSupervisorService()
-
-	// Create a new server.
 	server := api.NewServer(configService, dhcpService, statusService, supervisorService)
 
-	r.StaticFS("/static", http.Dir("../../../frontend/src"))
+	// --- API Server ---
+	apiRouter := gin.New()
+	apiRouter.Use(gin.Recovery())
+	apiRouter.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+		SkipPaths: []string{"/api/v1/status"},
+	}))
+	apiRouter.Use(api.CORSMiddleware())
 
-	r.GET("/", func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, "/static/index.html")
-	})
-
-	// Register the API endpoints.
-	v1 := r.Group("/api/v1")
+	v1 := apiRouter.Group("/api/v1")
 	{
 		v1.GET("/config", server.GetConfig)
 		v1.PUT("/config", server.UpdateConfig)
@@ -87,5 +81,74 @@ func main() {
 		v1.GET("/version", server.GetVersion)
 	}
 
-	r.Run(":8080")
+	// --- Web Server ---
+	webRouter := gin.New()
+	webRouter.Use(gin.Recovery())
+	webRouter.Use(gin.Logger())
+
+	webRouter.StaticFS("/static", http.Dir("../../../frontend/src"))
+
+	webRouter.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/static/index.html")
+	})
+
+	// Serve env.js to configure API URL
+	webRouter.GET("/env.js", func(c *gin.Context) {
+		// In a real scenario, this might be dynamic based on external URL
+		// For now, we assume the API is on the same host but different port
+		// If accessed via k8s service/ingress, this logic might need adjustment
+		// But for local/docker, this works.
+		// Actually, for browser access, we need the public URL.
+		// Let's assume relative URL doesn't work across ports.
+		// We can try to infer from request host, but port is different.
+		// Let's just set it to empty string if we want to use relative path (same origin),
+		// but here we are different origin (port).
+		// So we need absolute URL.
+		// Or we can use a proxy? No, user asked to dissociate.
+
+		// Simple approach: Use the same hostname as the request, but change the port.
+		// host := c.Request.Host // e.g. localhost:8080
+		// We need to strip port and add API port
+		// This is a bit hacky for production behind ingress, but works for direct access.
+		// For production, we might want an env var for PUBLIC_API_URL.
+
+		publicApiUrl := os.Getenv("PUBLIC_API_URL")
+		if publicApiUrl == "" {
+			// Fallback to constructing from request
+			// This assumes http (not https) if not specified, which might be wrong.
+			// But for internal/local it's fine.
+			// scheme := "http"
+			// if c.Request.TLS != nil {
+			// 	scheme = "https"
+			// }
+			// If behind a proxy, X-Forwarded-Proto might be needed.
+
+			// Let's just return a script that constructs it client side if possible?
+			// No, client side doesn't know the API port unless we tell it.
+			// So we must tell it the API port.
+
+			// We'll just inject the API_PORT into the JS and let JS construct the URL
+			// using window.location.hostname
+			c.Header("Content-Type", "application/javascript")
+			c.String(http.StatusOK, fmt.Sprintf(`window.env = { API_PORT: "%s", API_URL: "" };
+if (!window.env.API_URL) {
+	window.env.API_URL = window.location.protocol + "//" + window.location.hostname + ":%s";
+}`, apiPort, apiPort))
+			return
+		}
+
+		c.Header("Content-Type", "application/javascript")
+		c.String(http.StatusOK, fmt.Sprintf(`window.env = { API_URL: "%s" };`, publicApiUrl))
+	})
+
+	// Run servers in goroutines
+	go func() {
+		if err := apiRouter.Run(":" + apiPort); err != nil {
+			panic(fmt.Sprintf("API server failed: %v", err))
+		}
+	}()
+
+	if err := webRouter.Run(":" + webPort); err != nil {
+		panic(fmt.Sprintf("Web server failed: %v", err))
+	}
 }

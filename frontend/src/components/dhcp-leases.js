@@ -44,7 +44,7 @@ window.sortLeases = function(column) {
 };
 
 async function getLeases() {
-    const response = await fetch('/api/v1/dhcp/leases');
+    const response = await fetch(`${window.env.API_URL}/api/v1/dhcp/leases`);
     const data = await response.json();
     return data.leases;
 }
@@ -162,7 +162,7 @@ window.saveLease = async function(index, oldMac, oldIp, oldHostname) {
         return;
     }
 
-    await fetch('/api/v1/dhcp/leases', {
+    await fetch(window.env.API_URL + '/api/v1/dhcp/leases', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -179,7 +179,7 @@ window.saveLease = async function(index, oldMac, oldIp, oldHostname) {
 window.deleteLease = async function(mac, ip, hostname) {
     if (!confirm(`Are you sure you want to delete lease for ${mac} (${ip})?`)) return;
 
-    await fetch('/api/v1/dhcp/leases', {
+    await fetch(`${window.env.API_URL}/api/v1/dhcp/leases`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mac_address: mac, ip_address: ip, hostname: hostname }),

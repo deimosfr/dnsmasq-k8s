@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     footer.className = 'footer mt-auto py-3 text-center';
     
     try {
-        const response = await fetch('/api/v1/version');
+        const response = await fetch(`${window.env.API_URL}/api/v1/version`);
         const data = await response.json();
         const version = data.version || 'unknown';
         

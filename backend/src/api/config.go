@@ -39,9 +39,10 @@ func (s *Server) UpdateConfig(c *gin.Context) {
 
 func (s *Server) AddDNSEntry(c *gin.Context) {
 	var json struct {
-		Type   string `json:"type"`
-		Domain string `json:"domain"`
-		Value  string `json:"value"`
+		Type    string `json:"type"`
+		Domain  string `json:"domain"`
+		Value   string `json:"value"`
+		Comment string `json:"comment"`
 	}
 
 	if err := c.ShouldBindJSON(&json); err != nil {
@@ -76,7 +77,7 @@ func (s *Server) AddDNSEntry(c *gin.Context) {
 		}
 	}
 
-	err := s.configService.AddDNSEntry(c.Request.Context(), json.Type, json.Domain, json.Value)
+	err := s.configService.AddDNSEntry(c.Request.Context(), json.Type, json.Domain, json.Value, json.Comment)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

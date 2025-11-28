@@ -32,6 +32,7 @@ func (s *Server) AddReservation(c *gin.Context) {
 		MACAddress string `json:"mac_address"`
 		IPAddress  string `json:"ip_address"`
 		Hostname   string `json:"hostname"`
+		Comment    string `json:"comment"`
 	}
 
 	if err := c.ShouldBindJSON(&json); err != nil {
@@ -49,7 +50,7 @@ func (s *Server) AddReservation(c *gin.Context) {
 		return
 	}
 
-	err := s.dhcpService.AddReservation(c.Request.Context(), json.MACAddress, json.IPAddress, json.Hostname)
+	err := s.dhcpService.AddReservation(c.Request.Context(), json.MACAddress, json.IPAddress, json.Hostname, json.Comment)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

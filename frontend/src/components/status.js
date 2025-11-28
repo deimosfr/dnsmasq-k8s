@@ -1,14 +1,23 @@
 async function getStatus() {
-    const response = await fetch('/api/v1/status');
+    const response = await fetch(`${window.env.API_URL}/api/v1/status`);
     const data = await response.json();
     return data;
 }
 
 function renderStatus(status) {
+    const apiStatusDiv = document.getElementById('api-status');
     const dnsStatusDiv = document.getElementById('dns-status');
     const dhcpStatusDiv = document.getElementById('dhcp-status');
 
     const pidDiv = document.getElementById('dnsmasq-pid');
+
+    if (apiStatusDiv) {
+        if (status.api) {
+            apiStatusDiv.innerHTML = '<span class="badge bg-success">Enabled</span>';
+        } else {
+            apiStatusDiv.innerHTML = '<span class="badge bg-secondary">Disabled</span>';
+        }
+    }
 
     if (dnsStatusDiv) {
         if (status.dns) {
@@ -136,7 +145,7 @@ window.controlSupervisor = async function(serviceName, action, btn) {
     }
 
     try {
-        const response = await fetch(`/api/v1/supervisor/${serviceName}/${action}`, {
+        const response = await fetch(`${window.env.API_URL}/api/v1/supervisor/${serviceName}/${action}`, {
             method: 'POST',
         });
         

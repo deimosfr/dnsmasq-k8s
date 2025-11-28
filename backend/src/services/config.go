@@ -66,7 +66,7 @@ func (s *ConfigService) GetConfigMap(ctx context.Context) (*v1.ConfigMap, error)
 	return s.clientset.CoreV1().ConfigMaps(s.namespace).Get(ctx, "dnsmasq-config", metav1.GetOptions{})
 }
 
-func (s *ConfigService) AddDNSEntry(ctx context.Context, recordType, domain, value string) error {
+func (s *ConfigService) AddDNSEntry(ctx context.Context, recordType, domain, value, comment string) error {
 	// Ensure custom DNS file exists
 	if _, err := os.Stat(s.customDNSFile); os.IsNotExist(err) {
 		// Ensure directory exists
@@ -100,6 +100,10 @@ func (s *ConfigService) AddDNSEntry(ctx context.Context, recordType, domain, val
 		return fmt.Errorf("unsupported DNS record type: %s. Only 'address', 'cname', and 'txt' are supported", recordType)
 	}
 
+	if comment != "" {
+		newEntry += fmt.Sprintf(" # %s", comment)
+	}
+
 	dnsmasqConf += newEntry
 
 	// Validate the configuration before writing
@@ -115,9 +119,10 @@ func (s *ConfigService) AddDNSEntry(ctx context.Context, recordType, domain, val
 }
 
 type DNSEntry struct {
-	Type   string `json:"type"`
-	Domain string `json:"domain"`
-	Value  string `json:"value"`
+	Type    string `json:"type"`
+	Domain  string `json:"domain"`
+	Value   string `json:"value"`
+	Comment string `json:"comment"`
 }
 
 func (s *ConfigService) GetDNSEntries(ctx context.Context) ([]DNSEntry, error) {
@@ -147,12 +152,18 @@ func (s *ConfigService) GetDNSEntries(ctx context.Context) ([]DNSEntry, error) {
 			continue
 		}
 
+		comment := ""
+		if idx := strings.Index(line, "#"); idx != -1 {
+			comment = strings.TrimSpace(line[idx+1:])
+			line = strings.TrimSpace(line[:idx])
+		}
+
 		if matches := reAddress.FindStringSubmatch(line); matches != nil {
-			entries = append(entries, DNSEntry{Type: "address", Domain: matches[1], Value: matches[2]})
+			entries = append(entries, DNSEntry{Type: "address", Domain: matches[1], Value: matches[2], Comment: comment})
 		} else if matches := reCname.FindStringSubmatch(line); matches != nil {
-			entries = append(entries, DNSEntry{Type: "cname", Domain: matches[1], Value: matches[2]})
+			entries = append(entries, DNSEntry{Type: "cname", Domain: matches[1], Value: matches[2], Comment: comment})
 		} else if matches := reTxt.FindStringSubmatch(line); matches != nil {
-			entries = append(entries, DNSEntry{Type: "txt", Domain: matches[1], Value: matches[2]})
+			entries = append(entries, DNSEntry{Type: "txt", Domain: matches[1], Value: matches[2], Comment: comment})
 		}
 	}
 
@@ -189,6 +200,12 @@ func (s *ConfigService) modifyDNSEntry(ctx context.Context, targetEntry, newEntr
 
 	for _, line := range lines {
 		trimmedLine := strings.TrimSpace(line)
+
+		// Strip comment if present
+		if idx := strings.Index(trimmedLine, "#"); idx != -1 {
+			trimmedLine = strings.TrimSpace(trimmedLine[:idx])
+		}
+
 		if !found && trimmedLine == targetLine {
 			found = true
 			if !isDelete {
@@ -201,6 +218,9 @@ func (s *ConfigService) modifyDNSEntry(ctx context.Context, targetEntry, newEntr
 					newLine = fmt.Sprintf("cname=%s,%s", newEntry.Domain, newEntry.Value)
 				case "txt-record":
 					newLine = fmt.Sprintf("txt-record=%s,\"%s\"", newEntry.Domain, newEntry.Value)
+				}
+				if newEntry.Comment != "" {
+					newLine += fmt.Sprintf(" # %s", newEntry.Comment)
 				}
 				newLines = append(newLines, newLine)
 			}
@@ -340,31 +360,7 @@ func (s *ConfigService) SyncConfigToConfigMap(ctx context.Context) error {
 		return fmt.Errorf("failed to read config file: %v", err)
 	}
 
-	configMap, err := s.clientset.CoreV1().ConfigMaps(s.namespace).Get(ctx, "dnsmasq-config", metav1.GetOptions{})
-	if err != nil {
-		if errors.IsNotFound(err) {
-			// Create ConfigMap
-			newCM := &v1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "dnsmasq-config",
-					Namespace: s.namespace,
-				},
-				Data: map[string]string{
-					"dnsmasq.conf": string(content),
-				},
-			}
-			_, err = s.clientset.CoreV1().ConfigMaps(s.namespace).Create(ctx, newCM, metav1.CreateOptions{})
-			if err != nil {
-				return fmt.Errorf("failed to create ConfigMap: %v", err)
-			}
-			return nil
-		}
-		return fmt.Errorf("failed to get ConfigMap: %v", err)
-	}
-
-	configMap.Data["dnsmasq.conf"] = string(content)
-	_, err = s.clientset.CoreV1().ConfigMaps(s.namespace).Update(ctx, configMap, metav1.UpdateOptions{})
-	return err
+	return UpdateConfigMapWithRetry(ctx, s.clientset, s.namespace, "dnsmasq-config", "dnsmasq.conf", string(content))
 }
 
 func (s *ConfigService) RestoreConfigFromConfigMap(ctx context.Context) error {
@@ -462,31 +458,7 @@ func (s *ConfigService) SyncCustomDNSToConfigMap(ctx context.Context) error {
 		return fmt.Errorf("failed to read custom DNS file: %v", err)
 	}
 
-	configMap, err := s.clientset.CoreV1().ConfigMaps(s.namespace).Get(ctx, "dnsmasq-custom-dns", metav1.GetOptions{})
-	if err != nil {
-		if errors.IsNotFound(err) {
-			// Create ConfigMap
-			newCM := &v1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "dnsmasq-custom-dns",
-					Namespace: s.namespace,
-				},
-				Data: map[string]string{
-					"custom.conf": string(content),
-				},
-			}
-			_, err = s.clientset.CoreV1().ConfigMaps(s.namespace).Create(ctx, newCM, metav1.CreateOptions{})
-			if err != nil {
-				return fmt.Errorf("failed to create ConfigMap: %v", err)
-			}
-			return nil
-		}
-		return fmt.Errorf("failed to get ConfigMap: %v", err)
-	}
-
-	configMap.Data["custom.conf"] = string(content)
-	_, err = s.clientset.CoreV1().ConfigMaps(s.namespace).Update(ctx, configMap, metav1.UpdateOptions{})
-	return err
+	return UpdateConfigMapWithRetry(ctx, s.clientset, s.namespace, "dnsmasq-custom-dns", "custom.conf", string(content))
 }
 
 func (s *ConfigService) RestoreCustomDNSFromConfigMap(ctx context.Context) error {

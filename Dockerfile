@@ -8,13 +8,13 @@ RUN go mod download
 COPY backend/. .
 COPY frontend/. ./frontend/
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /dnsmasq-k8s-ui ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /dnsmasq-k8s ./cmd/api
 
 FROM debian:stable-slim
 
 RUN apt-get update && apt-get install -y dnsmasq supervisor procps && apt-get clean
 
-COPY --from=builder /dnsmasq-k8s-ui /dnsmasq-k8s-ui
+COPY --from=builder /dnsmasq-k8s /dnsmasq-k8s
 
 WORKDIR /
 

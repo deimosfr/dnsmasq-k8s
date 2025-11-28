@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "dnsmasq-k8s-ui.fullname" . }}
+  name: {{ include "dnsmasq-k8s.fullname" . }}
   labels:
-    app: dnsmasq-k8s-ui
+    app: dnsmasq-k8s
   {{- with .Values.service.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -34,4 +34,4 @@ spec:
       name: dhcp
     {{- end }}
   selector:
-    app: dnsmasq-k8s-ui
+    app: dnsmasq-k8s

@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         footer.innerHTML = `
             <div class="container">
                 <span class="text-muted">
-                    Dnsmasq K8s UI v${version} | 
+                    Dnsmasq K8s v${version} | 
                     <a href="https://github.com/deimosfr/dnsmasq-k8s-ui" target="_blank" class="text-decoration-none text-secondary">
                         <i class="bi bi-github"></i> GitHub
                     </a>
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         footer.innerHTML = `
             <div class="container">
                 <span class="text-muted">
-                    Dnsmasq K8s UI | 
+                    Dnsmasq K8s | 
                     <a href="https://github.com/deimosfr/dnsmasq-k8s-ui" target="_blank" class="text-decoration-none text-secondary">
                         <i class="bi bi-github"></i> GitHub
                     </a>

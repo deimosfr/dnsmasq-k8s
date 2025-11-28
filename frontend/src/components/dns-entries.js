@@ -92,6 +92,7 @@ document.getElementById('add-dns-form').addEventListener('submit', async (event)
     const dnsType = document.getElementById('dns-type').value;
     const domain = document.getElementById('dns-domain').value.trim();
     const value = document.getElementById('dns-value').value.trim();
+    const comment = document.getElementById('dns-comment').value.trim();
 
     // Client-side validation
     const validation = VALIDATION_PATTERNS[dnsType];
@@ -101,7 +102,7 @@ document.getElementById('add-dns-form').addEventListener('submit', async (event)
     }
 
     try {
-        await addDNSEntry(dnsType, domain, value);
+        await addDNSEntry(dnsType, domain, value, comment);
         document.getElementById('add-dns-form').reset();
         // Reset to default validation (A record)
         updateFormValidation('address');
@@ -113,8 +114,8 @@ document.getElementById('add-dns-form').addEventListener('submit', async (event)
     }
 });
 
-async function addDNSEntry(dnsType, domain, value) {
-    const response = await fetch('/api/v1/dns/entries', {
+async function addDNSEntry(dnsType, domain, value, comment) {
+    const response = await fetch(`${window.env.API_URL}/api/v1/dns/entries`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -123,6 +124,7 @@ async function addDNSEntry(dnsType, domain, value) {
             type: dnsType,
             domain: domain,
             value: value,
+            comment: comment,
         }),
     });
 
@@ -134,7 +136,7 @@ async function addDNSEntry(dnsType, domain, value) {
 }
 
 async function getDNSEntries() {
-    const response = await fetch('/api/v1/dns/entries');
+    const response = await fetch(`${window.env.API_URL}/api/v1/dns/entries`);
     const data = await response.json();
     return data;
 }
@@ -169,8 +171,9 @@ async function displayDNSEntries() {
             <td>${displayType}</td>
             <td>${entry.domain}</td>
             <td>${entry.value}</td>
+            <td>${entry.comment || ''}</td>
             <td>
-                <i class="bi bi-pencil text-success me-3" style="cursor: pointer;" onclick="editEntry(${index}, '${entry.type}', '${escapedDomain}', '${escapedValue}')"></i>
+                <i class="bi bi-pencil text-success me-3" style="cursor: pointer;" onclick="editEntry(${index}, '${entry.type}', '${escapedDomain}', '${escapedValue}', '${entry.comment || ''}')"></i>
                 <i class="bi bi-x-lg text-danger" style="cursor: pointer;" onclick="deleteEntry('${entry.type}', '${escapedDomain}', '${escapedValue}')"></i>
             </td>
         `;
@@ -188,7 +191,7 @@ function formatDnsType(type) {
     return type.toUpperCase();
 }
 
-window.editEntry = function(index, type, domain, value) {
+window.editEntry = function(index, type, domain, value, comment) {
     const tbody = document.getElementById('dns-entries-table-body');
     const row = tbody.children[index];
     const displayType = formatDnsType(type);
@@ -203,8 +206,9 @@ window.editEntry = function(index, type, domain, value) {
         </td>
         <td><input type="text" class="form-control form-control-sm" id="edit-domain-${index}" value="${unescapedDomain}"></td>
         <td><input type="text" class="form-control form-control-sm" id="edit-value-${index}" value="${unescapedValue}"></td>
+        <td><input type="text" class="form-control form-control-sm" id="edit-comment-${index}" value="${comment}"></td>
         <td>
-            <i class="bi bi-check-lg text-success me-3" style="cursor: pointer;" onclick="saveEntry(${index}, '${type}', '${domain}', '${value}')"></i>
+            <i class="bi bi-check-lg text-success me-3" style="cursor: pointer;" onclick="saveEntry(${index}, '${type}', '${domain}', '${value}', '${comment}')"></i>
             <i class="bi bi-x-circle text-secondary" style="cursor: pointer;" onclick="cancelEdit()"></i>
         </td>
     `;
@@ -214,10 +218,11 @@ window.cancelEdit = function() {
     displayDNSEntries();
 }
 
-window.saveEntry = async function(index, oldType, oldDomain, oldValue) {
+window.saveEntry = async function(index, oldType, oldDomain, oldValue, oldComment) {
     const newType = oldType; // Type cannot be changed
     const newDomain = document.getElementById(`edit-domain-${index}`).value.trim();
     const newValue = document.getElementById(`edit-value-${index}`).value.trim();
+    const newComment = document.getElementById(`edit-comment-${index}`).value.trim();
 
     // Validate based on type
     const validation = VALIDATION_PATTERNS[oldType];
@@ -231,14 +236,14 @@ window.saveEntry = async function(index, oldType, oldDomain, oldValue) {
     const unescapedOldValue = oldValue.replace(/&#39;/g, "'");
 
     try {
-        await fetch('/api/v1/dns/entries', {
+        await fetch(`${window.env.API_URL}/api/v1/dns/entries`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                old: { type: oldType, domain: unescapedOldDomain, value: unescapedOldValue },
-                new: { type: newType, domain: newDomain, value: newValue }
+                old: { type: oldType, domain: unescapedOldDomain, value: unescapedOldValue, comment: oldComment },
+                new: { type: newType, domain: newDomain, value: newValue, comment: newComment }
             }),
         });
 
@@ -258,7 +263,7 @@ window.deleteEntry = async function(type, domain, value) {
         return;
     }
 
-    await fetch('/api/v1/dns/entries', {
+    await fetch(`${window.env.API_URL}/api/v1/dns/entries`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',

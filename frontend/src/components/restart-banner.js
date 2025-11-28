@@ -28,7 +28,7 @@ function displayBanner() {
 // Restart dnsmasq and hide the banner
 async function restartDnsmasq() {
     try {
-        const response = await fetch('/api/v1/supervisor/dnsmasq/restart', {
+        const response = await fetch(window.env.API_URL + '/api/v1/supervisor/dnsmasq/restart', {
             method: 'POST',
         });
         

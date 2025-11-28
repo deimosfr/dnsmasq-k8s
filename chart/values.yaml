@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: deimosfr/dnsmasq-k8s-ui
   pullPolicy: IfNotPresent
-  tag: "1.1.0"
+  tag: "1.2.0"
 
 hostNetwork: true
 
@@ -12,11 +12,19 @@ service:
   port: 80
   annotations: {}
 
+web:
+  port: 8080
+
+api:
+  enabled: true
+  port: 8081
+  servicePort: 8081
+
 dns:
   enabled: true
 
 dhcp:
-  enabled: true
+  enabled: false
   leaseFile: /var/lib/misc/dnsmasq.leases
 
 serviceAccount:

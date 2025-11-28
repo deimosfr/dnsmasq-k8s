@@ -41,7 +41,7 @@ func (s *SupervisorService) RestartService(serviceName string) error {
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("ERROR: Failed to restart service %s: %v, output: %s\n", serviceName, err, string(output))
-		return fmt.Errorf("failed to restart service: %v", err)
+		return fmt.Errorf("failed to restart service: %v, output: %s", err, string(output))
 	}
 	fmt.Printf("INFO: Service %s restarted successfully\n", serviceName)
 	return nil

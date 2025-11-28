@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -47,6 +48,9 @@ func (s *Server) RestartSupervisorService(c *gin.Context) {
 
 	err := s.supervisorService.RestartService(serviceName)
 	if err != nil {
+		// Log the error to stdout so it appears in pod logs
+		// The error message now includes the supervisorctl output
+		println(fmt.Sprintf("ERROR: RestartSupervisorService failed: %v", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

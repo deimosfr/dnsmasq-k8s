@@ -1,5 +1,5 @@
 async function getConfig() {
-    const response = await fetch('/api/v1/config');
+    const response = await fetch(window.env.API_URL + '/api/v1/config');
     const data = await response.text();
     return data;
 }

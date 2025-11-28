@@ -74,7 +74,7 @@ func TestDHCPService_AddReservation_Uppercase(t *testing.T) {
 	dhcpService := NewDHCPService(clientset, "default", configService)
 
 	// Add with lowercase
-	err = dhcpService.AddReservation(context.Background(), "00:0c:29:1c:bf:3b", "192.168.1.100", "my-host")
+	err = dhcpService.AddReservation(context.Background(), "00:0c:29:1c:bf:3b", "192.168.1.100", "my-host", "")
 	// Ignore error from ReloadDnsmasq if any, or check if it's specific error
 	// assert.NoError(t, err)
 

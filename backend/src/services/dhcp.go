@@ -36,6 +36,7 @@ type DHCPReservation struct {
 	MACAddress string `json:"mac_address"`
 	IPAddress  string `json:"ip_address"`
 	Hostname   string `json:"hostname"`
+	Comment    string `json:"comment"`
 }
 
 func NewDHCPService(clientset kubernetes.Interface, namespace string, configService *ConfigService) *DHCPService {
@@ -99,11 +100,20 @@ func (s *DHCPService) GetReservations(ctx context.Context) ([]DHCPReservation, e
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
+
+		comment := ""
+		if idx := strings.Index(line, "#"); idx != -1 {
+			comment = strings.TrimSpace(line[idx+1:])
+			line = strings.TrimSpace(line[:idx])
+		}
+
 		// dhcp-host=mac,ip,hostname OR dhcp-host=hostname,mac,ip
 		if strings.HasPrefix(line, "dhcp-host=") {
 			parts := strings.Split(strings.TrimPrefix(line, "dhcp-host="), ",")
 			if len(parts) >= 3 {
-				res := DHCPReservation{}
+				res := DHCPReservation{
+					Comment: comment,
+				}
 				for _, part := range parts {
 					part = strings.TrimSpace(part)
 					if strings.Contains(part, ":") {
@@ -123,7 +133,7 @@ func (s *DHCPService) GetReservations(ctx context.Context) ([]DHCPReservation, e
 	return reservations, nil
 }
 
-func (s *DHCPService) AddReservation(ctx context.Context, macAddress, ipAddress, hostname string) error {
+func (s *DHCPService) AddReservation(ctx context.Context, macAddress, ipAddress, hostname, comment string) error {
 	macAddress = strings.ToUpper(macAddress)
 	// Ensure directory exists
 	dir := filepath.Dir(s.reservationsFile)
@@ -140,8 +150,13 @@ func (s *DHCPService) AddReservation(ctx context.Context, macAddress, ipAddress,
 	}
 	// defer f.Close() // We close explicitly
 
+	line := fmt.Sprintf("\ndhcp-host=%s,%s,%s", hostname, macAddress, ipAddress)
+	if comment != "" {
+		line += fmt.Sprintf(" # %s", comment)
+	}
+
 	// Write in format: dhcp-host=hostname,mac,ip
-	if _, err := f.WriteString(fmt.Sprintf("\ndhcp-host=%s,%s,%s", hostname, macAddress, ipAddress)); err != nil {
+	if _, err := f.WriteString(line); err != nil {
 		return err
 	}
 
@@ -169,6 +184,12 @@ func (s *DHCPService) modifyReservation(ctx context.Context, target, newRes DHCP
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
+
+		// Strip comment if present
+		if idx := strings.Index(trimmed, "#"); idx != -1 {
+			trimmed = strings.TrimSpace(trimmed[:idx])
+		}
+
 		if !found && strings.HasPrefix(trimmed, "dhcp-host=") {
 			parts := strings.Split(strings.TrimPrefix(trimmed, "dhcp-host="), ",")
 			if len(parts) >= 3 {
@@ -189,7 +210,11 @@ func (s *DHCPService) modifyReservation(ctx context.Context, target, newRes DHCP
 					if !isDelete {
 						newRes.MACAddress = strings.ToUpper(newRes.MACAddress)
 						// Write in format: dhcp-host=hostname,mac,ip
-						newLines = append(newLines, fmt.Sprintf("dhcp-host=%s,%s,%s", newRes.Hostname, newRes.MACAddress, newRes.IPAddress))
+						newLine := fmt.Sprintf("dhcp-host=%s,%s,%s", newRes.Hostname, newRes.MACAddress, newRes.IPAddress)
+						if newRes.Comment != "" {
+							newLine += fmt.Sprintf(" # %s", newRes.Comment)
+						}
+						newLines = append(newLines, newLine)
 					}
 					continue
 				}
@@ -478,27 +503,7 @@ func (s *DHCPService) SyncReservationsToConfigMap(ctx context.Context) error {
 		return fmt.Errorf("failed to read reservations file: %v", err)
 	}
 
-	configMap, err := s.clientset.CoreV1().ConfigMaps(s.namespace).Get(ctx, "dnsmasq-reservations", metav1.GetOptions{})
-	if err != nil {
-		if errors.IsNotFound(err) {
-			newCM := &v1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "dnsmasq-reservations",
-					Namespace: s.namespace,
-				},
-				Data: map[string]string{
-					"reservations.conf": string(content),
-				},
-			}
-			_, err = s.clientset.CoreV1().ConfigMaps(s.namespace).Create(ctx, newCM, metav1.CreateOptions{})
-			return err
-		}
-		return err
-	}
-
-	configMap.Data["reservations.conf"] = string(content)
-	_, err = s.clientset.CoreV1().ConfigMaps(s.namespace).Update(ctx, configMap, metav1.UpdateOptions{})
-	return err
+	return UpdateConfigMapWithRetry(ctx, s.clientset, s.namespace, "dnsmasq-reservations", "reservations.conf", string(content))
 }
 
 func (s *DHCPService) RestoreReservationsFromConfigMap(ctx context.Context) error {

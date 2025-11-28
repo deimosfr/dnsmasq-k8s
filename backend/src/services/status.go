@@ -13,6 +13,7 @@ type StatusService struct {
 }
 
 type Status struct {
+	API                bool     `json:"api"`
 	DNS                bool     `json:"dns"`
 	DHCP               bool     `json:"dhcp"`
 	Uptime             string   `json:"uptime"`
@@ -33,6 +34,7 @@ func (s *StatusService) GetStatus() *Status {
 	dnsmasqPID := getDnsmasqPID()
 
 	return &Status{
+		API:                true,
 		DNS:                os.Getenv("DNS_ENABLED") == "true",
 		DHCP:               os.Getenv("DHCP_ENABLED") == "true",
 		Uptime:             uptimeStr,

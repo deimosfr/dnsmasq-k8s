@@ -98,9 +98,18 @@ async function switchToViewMode() {
     document.getElementById('config-view').style.display = 'block';
 }
 
+// Get config via API
+async function getConfig() {
+    const response = await fetch(`${window.env.API_URL}/api/v1/config`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch configuration');
+    }
+    return await response.text();
+}
+
 // Update config via API
 async function updateConfig(config) {
-    const response = await fetch('/api/v1/config', {
+    const response = await fetch(`${window.env.API_URL}/api/v1/config`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',

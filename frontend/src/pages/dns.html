@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/static/theme.css">
+    <script src="/env.js"></script>
     <script src="/static/components/theme-toggle.js"></script>
     <style>
       /* Placeholder text styling - grey when empty */
@@ -63,13 +64,17 @@
                 <option value="txt">TXT</option>
               </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
               <label for="dns-domain" class="form-label visually-hidden">Domain</label>
               <input type="text" class="form-control" id="dns-domain" placeholder="Domain (e.g., example.com)" required>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
               <label for="dns-value" class="form-label visually-hidden">Value</label>
               <input type="text" class="form-control" id="dns-value" placeholder="IP Address" required pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+            </div>
+            <div class="col-md-2">
+              <label for="dns-comment" class="form-label visually-hidden">Comment</label>
+              <input type="text" class="form-control" id="dns-comment" placeholder="Comment (optional)">
             </div>
             <div class="col-md-2">
               <button type="submit" class="btn btn-success w-100">Add</button>
@@ -86,15 +91,16 @@
           <table class="table table-striped align-middle">
             <thead>
               <tr>
-                <th style="width: 15%; cursor: pointer;" onclick="sortDNSEntries('type')">
+                <th style="width: 10%; cursor: pointer;" onclick="sortDNSEntries('type')">
                   Type <i id="sort-icon-type" class="bi bi-chevron-expand"></i>
                 </th>
-                <th style="width: 35%; cursor: pointer;" onclick="sortDNSEntries('domain')">
+                <th style="width: 25%; cursor: pointer;" onclick="sortDNSEntries('domain')">
                   Domain <i id="sort-icon-domain" class="bi bi-chevron-expand"></i>
                 </th>
-                <th style="width: 35%; cursor: pointer;" onclick="sortDNSEntries('value')">
+                <th style="width: 25%; cursor: pointer;" onclick="sortDNSEntries('value')">
                   Value <i id="sort-icon-value" class="bi bi-chevron-expand"></i>
                 </th>
+                <th style="width: 25%">Comment</th>
                 <th style="width: 15%">Actions</th>
               </tr>
             </thead>

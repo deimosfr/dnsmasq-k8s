@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "dnsmasq-k8s-ui.name" -}}
+{{- define "dnsmasq-k8s.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "dnsmasq-k8s-ui.fullname" -}}
+{{- define "dnsmasq-k8s.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "dnsmasq-k8s-ui.chart" -}}
+{{- define "dnsmasq-k8s.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "dnsmasq-k8s-ui.labels" -}}
-helm.sh/chart: {{ include "dnsmasq-k8s-ui.chart" . }}
-{{ include "dnsmasq-k8s-ui.selectorLabels" . }}
+{{- define "dnsmasq-k8s.labels" -}}
+helm.sh/chart: {{ include "dnsmasq-k8s.chart" . }}
+{{ include "dnsmasq-k8s.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "dnsmasq-k8s-ui.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "dnsmasq-k8s-ui.name" . }}
+{{- define "dnsmasq-k8s.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "dnsmasq-k8s.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "dnsmasq-k8s-ui.serviceAccountName" -}}
+{{- define "dnsmasq-k8s.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "dnsmasq-k8s-ui.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "dnsmasq-k8s.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
@@ -64,7 +64,7 @@ Create the name of the service account to use
 {{/*
 Validate values
 */}}
-{{- define "dnsmasq-k8s-ui.validateValues" -}}
+{{- define "dnsmasq-k8s.validateValues" -}}
 {{- if and (gt (int .Values.replicaCount) 1) .Values.dhcp.enabled }}
 {{- fail "Can't support multiple replicas because of dnsmasq implementation with concurrency issue on a single configmap and no possible diff between 2 versions" }}
 {{- end }}

@@ -1,4 +1,4 @@
-# Feature Specification: Dnsmasq Kubernetes UI
+# Feature Specification: Dnsmasq Kubernetes
 
 **Feature Branch**: `1-dnsmasq-k8s-ui`  
 **Created**: 2025-11-19
@@ -17,7 +17,7 @@ As a system administrator, I want to view the current dnsmasq configuration (inc
 
 **Acceptance Scenarios**:
 
-1. **Given** a running dnsmasq-k8s-ui instance, **When** I navigate to the configuration page, **Then** I should see the current dnsmasq, DNS, and DHCP configurations.
+1. **Given** a running dnsmasq-k8s instance, **When** I navigate to the configuration page, **Then** I should see the current dnsmasq, DNS, and DHCP configurations.
 2. **Given** the configuration is updated in the configmap, **When** I refresh the configuration page, **Then** I should see the updated configuration.
 
 ### User Story 2 - Update Dnsmasq Configuration (Priority: P2)

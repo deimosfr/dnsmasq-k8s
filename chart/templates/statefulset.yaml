@@ -1,25 +1,25 @@
 apiVersion: apps/v1
-{{- include "dnsmasq-k8s-ui.validateValues" . }}
+{{- include "dnsmasq-k8s.validateValues" . }}
 kind: StatefulSet
 metadata:
-  name: {{ include "dnsmasq-k8s-ui.fullname" . }}
+  name: {{ include "dnsmasq-k8s.fullname" . }}
   labels:
-    app: dnsmasq-k8s-ui
+    app: dnsmasq-k8s
 spec:
-  serviceName: {{ include "dnsmasq-k8s-ui.fullname" . }}
+  serviceName: {{ include "dnsmasq-k8s.fullname" . }}
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: dnsmasq-k8s-ui
+      app: dnsmasq-k8s
   template:
     metadata:
       labels:
-        app: dnsmasq-k8s-ui
+        app: dnsmasq-k8s
     spec:
       hostNetwork: {{ .Values.hostNetwork }}
-      serviceAccountName: {{ include "dnsmasq-k8s-ui.serviceAccountName" . }}
+      serviceAccountName: {{ include "dnsmasq-k8s.serviceAccountName" . }}
       containers:
-        - name: dnsmasq-k8s-ui
+        - name: dnsmasq-k8s
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:

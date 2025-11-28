@@ -1,18 +1,18 @@
-# Dnsmasq K8s UI [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/dnsmasq-k8s-ui)](https://artifacthub.io/packages/search?repo=dnsmasq-k8s-ui)
+# Dnsmasq K8s [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/dnsmasq-k8s-ui)](https://artifacthub.io/packages/search?repo=dnsmasq-k8s-ui)
 
 A modern, lightweight web interface for managing **dnsmasq** DNS and DHCP services in Kubernetes clusters. Simplify your network management with an intuitive UI for DNS records, DHCP leases, and service configuration. Ideal for DNS & DHCP home labs.
 
-![Dnsmasq K8s UI](doc/dash.png)
+![Dnsmasq K8s](doc/dash.png)
 
-![Dnsmasq K8s UI](doc/config.png)
+![Dnsmasq K8s](doc/config.png)
 
-![Dnsmasq K8s UI](doc/dns.png)
+![Dnsmasq K8s](doc/dns.png)
 
-![Dnsmasq K8s UI](doc/res.png)
+![Dnsmasq K8s](doc/res.png)
 
-![Dnsmasq K8s UI](doc/leases.png)
+![Dnsmasq K8s](doc/leases.png)
 
-![Dnsmasq K8s UI](doc/res-dark.png)
+![Dnsmasq K8s](doc/res-dark.png)
 
 ## ✨ Features
 
@@ -68,12 +68,12 @@ A modern, lightweight web interface for managing **dnsmasq** DNS and DHCP servic
 
    ```bash
    helm repo add dnsmasq-k8s-ui https://deimosfr.github.io/dnsmasq-k8s-ui/
-   helm install my-dnsmasq-k8s-ui dnsmasq-k8s-ui/dnsmasq-k8s-ui --version 1.1.0
+   helm install my-dnsmasq-k8s dnsmasq-k8s-ui/dnsmasq-k8s --version 1.1.0
    ```
 
 2. **Verify the installation**:
    ```bash
-   kubectl get pods -l app=dnsmas-k8s-ui
+   kubectl get pods -l app=dnsmasq-k8s
    ```
 
 ### Custom Installation
@@ -118,19 +118,19 @@ securityContext:
 
 Install with custom values:
 ```bash
-helm install dnsmas-k8s-ui ./chart -f values.yaml
+helm install dnsmasq-k8s ./chart -f values.yaml
 ```
 
 ### Upgrade
 
 ```bash
-helm upgrade dnsmas-k8s-ui ./chart
+helm upgrade dnsmasq-k8s ./chart
 ```
 
 ### Uninstall
 
 ```bash
-helm uninstall dnsmas-k8s-ui
+helm uninstall dnsmasq-k8s
 ```
 
 ---
@@ -141,7 +141,7 @@ helm uninstall dnsmas-k8s-ui
 
 **Using Port Forward (for testing):**
 ```bash
-kubectl port-forward svc/dnsmasq-k8s-ui 8080:80
+kubectl port-forward svc/dnsmasq-k8s 8080:80
 ```
 Then open: http://localhost:8080
 

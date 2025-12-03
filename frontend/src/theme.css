@@ -12,7 +12,7 @@
   --navbar-bg: #198754;
 }
 
-[data-theme="dark"] {
+[data-bs-theme="dark"] {
   /* Dark theme colors */
   --bg-primary: #1a1a1a;
   --bg-secondary: #2d2d2d;
@@ -52,7 +52,7 @@ body {
   color: var(--text-primary);
 }
 
-[data-theme="dark"] .table thead th {
+[data-bs-theme="dark"] .table thead th {
   color: #ffffff;
   font-weight: 600;
 }
@@ -181,7 +181,7 @@ body {
   animation: slideDown 0.3s ease-out;
 }
 
-[data-theme="dark"] .restart-banner {
+[data-bs-theme="dark"] .restart-banner {
   background-color: #ffb700;
   color: #000;
 }

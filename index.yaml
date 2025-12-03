@@ -3,9 +3,9 @@ entries:
   dnsmasq-k8s:
   - apiVersion: v2
     appVersion: 1.2.0
-    created: "2025-12-03T17:10:50.595562283Z"
+    created: "2025-12-03T17:17:26.720701982Z"
     description: A Helm chart for Dnsmasq K8s
-    digest: 12e3a5a6db616f5a456f09264be7fb0d0e20e77fbdf94de7ac797c9ba4ba1404
+    digest: b8473703359701b14ddbe5d523bb4a26c94081602679a0a7a39568452ab3f1af
     name: dnsmasq-k8s
     urls:
     - https://deimosfr.github.io/dnsmasq-k8s/dnsmasq-k8s-1.2.0.tgz
@@ -29,4 +29,4 @@ entries:
     urls:
     - https://deimosfr.github.io/dnsmasq-k8s-ui/dnsmasq-k8s-ui-1.0.0.tgz
     version: 1.0.0
-generated: "2025-12-03T17:10:50.595077039Z"
+generated: "2025-12-03T17:17:26.720267963Z"

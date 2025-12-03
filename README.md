@@ -1,18 +1,18 @@
-# Dnsmasq K8s [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/dnsmasq-k8s-ui)](https://artifacthub.io/packages/search?repo=dnsmasq-k8s-ui)
+# Dnsmasq K8s [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/dnsmasq-k8s)](https://artifacthub.io/packages/search?repo=dnsmasq-k8s)
 
 A modern, lightweight web interface for managing **dnsmasq** DNS and DHCP services in Kubernetes clusters. Simplify your network management with an intuitive UI for DNS records, DHCP leases, and service configuration. Ideal for DNS & DHCP home labs.
 
-![Dnsmasq K8s](doc/dash.png)
+![Dnsmasq K8s Dashboard](doc/dash.png)
 
-![Dnsmasq K8s](doc/config.png)
+![Dnsmasq K8s Configuration](doc/config.png)
 
-![Dnsmasq K8s](doc/dns.png)
+![Dnsmasq K8s DNS](doc/dns.png)
 
-![Dnsmasq K8s](doc/res.png)
+![Dnsmasq K8s Reservations](doc/res.png)
 
-![Dnsmasq K8s](doc/leases.png)
+![Dnsmasq K8s Leases](doc/leases.png)
 
-![Dnsmasq K8s](doc/res-dark.png)
+![Dnsmasq K8s API](doc/api.png)
 
 ## ✨ Features
 
@@ -64,11 +64,11 @@ A modern, lightweight web interface for managing **dnsmasq** DNS and DHCP servic
 ### Quick Start with Helm
 
 1. **Install using Helm**:
-   You can find the Helm chart page [here](https://artifacthub.io/packages/helm/dnsmasq-k8s-ui/dnsmasq-k8s-ui):
+   You can find the Helm chart page [here](https://artifacthub.io/packages/helm/dnsmasq-k8s/dnsmasq-k8s):
 
    ```bash
-   helm repo add dnsmasq-k8s-ui https://deimosfr.github.io/dnsmasq-k8s-ui/
-   helm install my-dnsmasq-k8s dnsmasq-k8s-ui/dnsmasq-k8s --version 1.1.0
+   helm repo add dnsmasq-k8s https://deimosfr.github.io/dnsmasq-k8s/
+   helm install my-dnsmasq-k8s dnsmasq-k8s/dnsmasq-k8s --version 1.2.0
    ```
 
 2. **Verify the installation**:
@@ -84,7 +84,7 @@ Create a `values.yaml` file to customize your deployment:
 replicaCount: 1
 
 image:
-  repository: deimosfr/dnsmasq-k8s-ui
+  repository: deimosfr/dnsmasq-k8s
   pullPolicy: IfNotPresent
   tag: "1.2.0"
 

@@ -9,16 +9,13 @@ hostNetwork: true
 
 service:
   type: LoadBalancer
-  port: 80
+  port: 8080
   annotations: {}
 
 web:
   port: 8080
 
-api:
-  enabled: true
-  port: 8081
-  servicePort: 8081
+
 
 dns:
   enabled: true

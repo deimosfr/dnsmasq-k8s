@@ -8,6 +8,30 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type UpdateConfigRequest struct {
+	Config string `json:"config"`
+}
+
+type AddDNSEntryRequest struct {
+	Type    string `json:"type"`
+	Domain  string `json:"domain"`
+	Value   string `json:"value"`
+	Comment string `json:"comment"`
+}
+
+type UpdateDNSEntryRequest struct {
+	Old services.DNSEntry `json:"old"`
+	New services.DNSEntry `json:"new"`
+}
+
+// GetConfig returns the current dnsmasq configuration
+// @Summary      Get configuration
+// @Description  Returns the current dnsmasq configuration
+// @Tags         config
+// @Produce      text/plain
+// @Success      200  {string}  string
+// @Failure      500  {object}  map[string]string
+// @Router       /config [get]
 func (s *Server) GetConfig(c *gin.Context) {
 	config, err := s.configService.GetConfig(c.Request.Context())
 	if err != nil {
@@ -18,10 +42,19 @@ func (s *Server) GetConfig(c *gin.Context) {
 	c.String(http.StatusOK, config)
 }
 
+// UpdateConfig updates the dnsmasq configuration
+// @Summary      Update configuration
+// @Description  Updates the dnsmasq configuration
+// @Tags         config
+// @Accept       json
+// @Produce      json
+// @Param        config  body      UpdateConfigRequest  true  "Configuration"
+// @Success      200     {object}  map[string]string
+// @Failure      400     {object}  map[string]string
+// @Failure      500     {object}  map[string]string
+// @Router       /config [put]
 func (s *Server) UpdateConfig(c *gin.Context) {
-	var json struct {
-		Config string `json:"config"`
-	}
+	var json UpdateConfigRequest
 
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -37,13 +70,19 @@ func (s *Server) UpdateConfig(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
+// AddDNSEntry adds a new DNS entry
+// @Summary      Add DNS entry
+// @Description  Adds a new DNS entry (A, CNAME, or TXT)
+// @Tags         dns
+// @Accept       json
+// @Produce      json
+// @Param        entry  body      AddDNSEntryRequest  true  "DNS Entry"
+// @Success      200    {object}  map[string]string
+// @Failure      400    {object}  map[string]string
+// @Failure      500    {object}  map[string]string
+// @Router       /dns/entries [post]
 func (s *Server) AddDNSEntry(c *gin.Context) {
-	var json struct {
-		Type    string `json:"type"`
-		Domain  string `json:"domain"`
-		Value   string `json:"value"`
-		Comment string `json:"comment"`
-	}
+	var json AddDNSEntryRequest
 
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -86,6 +125,14 @@ func (s *Server) AddDNSEntry(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
+// GetDNSEntries returns all DNS entries
+// @Summary      Get DNS entries
+// @Description  Returns all DNS entries
+// @Tags         dns
+// @Produce      json
+// @Success      200  {array}   services.DNSEntry
+// @Failure      500  {object}  map[string]string
+// @Router       /dns/entries [get]
 func (s *Server) GetDNSEntries(c *gin.Context) {
 	entries, err := s.configService.GetDNSEntries(c.Request.Context())
 	if err != nil {
@@ -96,6 +143,17 @@ func (s *Server) GetDNSEntries(c *gin.Context) {
 	c.JSON(http.StatusOK, entries)
 }
 
+// DeleteDNSEntry deletes a DNS entry
+// @Summary      Delete DNS entry
+// @Description  Deletes a DNS entry
+// @Tags         dns
+// @Accept       json
+// @Produce      json
+// @Param        entry  body      services.DNSEntry  true  "DNS Entry"
+// @Success      200    {object}  map[string]string
+// @Failure      400    {object}  map[string]string
+// @Failure      500    {object}  map[string]string
+// @Router       /dns/entries [delete]
 func (s *Server) DeleteDNSEntry(c *gin.Context) {
 	var json services.DNSEntry
 	if err := c.ShouldBindJSON(&json); err != nil {
@@ -112,11 +170,19 @@ func (s *Server) DeleteDNSEntry(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
+// UpdateDNSEntry updates a DNS entry
+// @Summary      Update DNS entry
+// @Description  Updates a DNS entry
+// @Tags         dns
+// @Accept       json
+// @Produce      json
+// @Param        entry  body      UpdateDNSEntryRequest  true  "DNS Entry Update"
+// @Success      200    {object}  map[string]string
+// @Failure      400    {object}  map[string]string
+// @Failure      500    {object}  map[string]string
+// @Router       /dns/entries [put]
 func (s *Server) UpdateDNSEntry(c *gin.Context) {
-	var json struct {
-		Old services.DNSEntry `json:"old"`
-		New services.DNSEntry `json:"new"`
-	}
+	var json UpdateDNSEntryRequest
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

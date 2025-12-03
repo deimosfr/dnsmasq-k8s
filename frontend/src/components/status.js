@@ -5,19 +5,13 @@ async function getStatus() {
 }
 
 function renderStatus(status) {
-    const apiStatusDiv = document.getElementById('api-status');
+
     const dnsStatusDiv = document.getElementById('dns-status');
     const dhcpStatusDiv = document.getElementById('dhcp-status');
 
     const pidDiv = document.getElementById('dnsmasq-pid');
 
-    if (apiStatusDiv) {
-        if (status.api) {
-            apiStatusDiv.innerHTML = '<span class="badge bg-success">Enabled</span>';
-        } else {
-            apiStatusDiv.innerHTML = '<span class="badge bg-secondary">Disabled</span>';
-        }
-    }
+
 
     if (dnsStatusDiv) {
         if (status.dns) {

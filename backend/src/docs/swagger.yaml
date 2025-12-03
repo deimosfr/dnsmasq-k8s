@@ -1,0 +1,651 @@
+basePath: /api/v1
+definitions:
+  api.AddDNSEntryRequest:
+    properties:
+      comment:
+        type: string
+      domain:
+        type: string
+      type:
+        type: string
+      value:
+        type: string
+    type: object
+  api.AddReservationRequest:
+    properties:
+      comment:
+        type: string
+      hostname:
+        type: string
+      ip_address:
+        type: string
+      mac_address:
+        type: string
+    type: object
+  api.UpdateConfigRequest:
+    properties:
+      config:
+        type: string
+    type: object
+  api.UpdateDNSEntryRequest:
+    properties:
+      new:
+        $ref: '#/definitions/services.DNSEntry'
+      old:
+        $ref: '#/definitions/services.DNSEntry'
+    type: object
+  api.UpdateLeaseRequest:
+    properties:
+      new:
+        $ref: '#/definitions/services.DHCPLease'
+      old:
+        $ref: '#/definitions/services.DHCPLease'
+    type: object
+  api.UpdateReservationRequest:
+    properties:
+      new:
+        $ref: '#/definitions/services.DHCPReservation'
+      old:
+        $ref: '#/definitions/services.DHCPReservation'
+    type: object
+  services.DHCPLease:
+    properties:
+      expiry_time:
+        type: integer
+      hostname:
+        type: string
+      ip_address:
+        type: string
+      mac_address:
+        type: string
+    type: object
+  services.DHCPReservation:
+    properties:
+      comment:
+        type: string
+      hostname:
+        type: string
+      ip_address:
+        type: string
+      mac_address:
+        type: string
+    type: object
+  services.DNSEntry:
+    properties:
+      comment:
+        type: string
+      domain:
+        type: string
+      type:
+        type: string
+      value:
+        type: string
+    type: object
+  services.Status:
+    properties:
+      api:
+        type: boolean
+      dhcp:
+        type: boolean
+      dns:
+        type: boolean
+      dnsmasq_pid:
+        type: string
+      supervisor_services:
+        items:
+          type: string
+        type: array
+      uptime:
+        type: string
+    type: object
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: API for managing Dnsmasq in Kubernetes
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Dnsmasq K8s API
+  version: "1.0"
+paths:
+  /config:
+    get:
+      description: Returns the current dnsmasq configuration
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get configuration
+      tags:
+      - config
+    put:
+      consumes:
+      - application/json
+      description: Updates the dnsmasq configuration
+      parameters:
+      - description: Configuration
+        in: body
+        name: config
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdateConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update configuration
+      tags:
+      - config
+  /dhcp/leases:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a DHCP lease
+      parameters:
+      - description: DHCP Lease
+        in: body
+        name: lease
+        required: true
+        schema:
+          $ref: '#/definitions/services.DHCPLease'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete DHCP lease
+      tags:
+      - dhcp
+    get:
+      description: Returns all DHCP leases
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              items:
+                $ref: '#/definitions/services.DHCPLease'
+              type: array
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get DHCP leases
+      tags:
+      - dhcp
+    put:
+      consumes:
+      - application/json
+      description: Updates a DHCP lease
+      parameters:
+      - description: DHCP Lease Update
+        in: body
+        name: lease
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdateLeaseRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update DHCP lease
+      tags:
+      - dhcp
+  /dhcp/reservations:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a DHCP reservation
+      parameters:
+      - description: DHCP Reservation
+        in: body
+        name: reservation
+        required: true
+        schema:
+          $ref: '#/definitions/services.DHCPReservation'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete DHCP reservation
+      tags:
+      - dhcp
+    get:
+      description: Returns all DHCP reservations
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              items:
+                $ref: '#/definitions/services.DHCPReservation'
+              type: array
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get DHCP reservations
+      tags:
+      - dhcp
+    post:
+      consumes:
+      - application/json
+      description: Adds a new DHCP reservation
+      parameters:
+      - description: DHCP Reservation
+        in: body
+        name: reservation
+        required: true
+        schema:
+          $ref: '#/definitions/api.AddReservationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add DHCP reservation
+      tags:
+      - dhcp
+    put:
+      consumes:
+      - application/json
+      description: Updates a DHCP reservation
+      parameters:
+      - description: DHCP Reservation Update
+        in: body
+        name: reservation
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdateReservationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update DHCP reservation
+      tags:
+      - dhcp
+  /dns/entries:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a DNS entry
+      parameters:
+      - description: DNS Entry
+        in: body
+        name: entry
+        required: true
+        schema:
+          $ref: '#/definitions/services.DNSEntry'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete DNS entry
+      tags:
+      - dns
+    get:
+      description: Returns all DNS entries
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/services.DNSEntry'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get DNS entries
+      tags:
+      - dns
+    post:
+      consumes:
+      - application/json
+      description: Adds a new DNS entry (A, CNAME, or TXT)
+      parameters:
+      - description: DNS Entry
+        in: body
+        name: entry
+        required: true
+        schema:
+          $ref: '#/definitions/api.AddDNSEntryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add DNS entry
+      tags:
+      - dns
+    put:
+      consumes:
+      - application/json
+      description: Updates a DNS entry
+      parameters:
+      - description: DNS Entry Update
+        in: body
+        name: entry
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdateDNSEntryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update DNS entry
+      tags:
+      - dns
+  /status:
+    get:
+      description: Returns the current status of the application
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/services.Status'
+      summary: Get application status
+      tags:
+      - status
+  /supervisor/{service}/restart:
+    post:
+      consumes:
+      - application/json
+      description: Restarts the specified service managed by supervisor
+      parameters:
+      - description: Service Name
+        in: path
+        name: service
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Restart a supervisor service
+      tags:
+      - supervisor
+  /supervisor/{service}/start:
+    post:
+      consumes:
+      - application/json
+      description: Starts the specified service managed by supervisor
+      parameters:
+      - description: Service Name
+        in: path
+        name: service
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Start a supervisor service
+      tags:
+      - supervisor
+  /supervisor/{service}/stop:
+    post:
+      consumes:
+      - application/json
+      description: Stops the specified service managed by supervisor
+      parameters:
+      - description: Service Name
+        in: path
+        name: service
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Stop a supervisor service
+      tags:
+      - supervisor
+  /version:
+    get:
+      description: Returns the current version of the application
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get application version
+      tags:
+      - version
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

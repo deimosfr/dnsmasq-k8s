@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/static/theme.css">
     <script src="/env.js"></script>
     <script src="/static/components/theme-toggle.js"></script>
+    <script src="/static/components/navbar.js"></script>
     <style>
       /* Placeholder text styling - grey when empty */
       input::placeholder,
@@ -19,33 +20,7 @@
     </style>
   </head>
   <body class="d-flex flex-column min-vh-100">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="/static/index.html">Dnsmasq K8s</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <a class="nav-link" href="/static/index.html">Home</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/static/pages/config.html">Config</a>
-            </li>
-            <li class="nav-item" id="nav-item-dns">
-              <a class="nav-link active" aria-current="page" href="#">DNS</a>
-            </li>
-            <li class="nav-item" id="nav-item-dhcp">
-              <a class="nav-link" href="/static/pages/dhcp.html">DHCP</a>
-            </li>
-          </ul>
-          <button id="theme-toggle" class="ms-auto" title="Toggle theme">
-            <i class="bi bi-moon-fill"></i>
-          </button>
-        </div>
-      </div>
-    </nav>
+    <app-navbar active-page="dns"></app-navbar>
 
     <div class="container mt-4 mb-5">
       <h2>DNS Management</h2>

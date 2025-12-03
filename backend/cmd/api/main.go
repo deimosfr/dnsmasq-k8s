@@ -8,9 +8,29 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+
+	_ "backend/src/docs" // Import generated docs
 )
+
+// @title           Dnsmasq K8s API
+// @version         1.0
+// @description     API for managing Dnsmasq in Kubernetes
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name    API Support
+// @contact.url     http://www.swagger.io/support
+// @contact.email   support@swagger.io
+
+// @license.name    Apache 2.0
+// @license.url     http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @BasePath  /api/v1
+
+// @securityDefinitions.basic  BasicAuth
 
 func main() {
 	// Get configuration from environment variables
@@ -51,15 +71,17 @@ func main() {
 	supervisorService := services.NewSupervisorService()
 	server := api.NewServer(configService, dhcpService, statusService, supervisorService)
 
-	// --- API Server ---
-	apiRouter := gin.New()
-	apiRouter.Use(gin.Recovery())
-	apiRouter.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+	// --- Server Setup ---
+	router := gin.New()
+	router.Use(gin.Recovery())
+	router.Use(gin.LoggerWithConfig(gin.LoggerConfig{
 		SkipPaths: []string{"/api/v1/status"},
 	}))
-	apiRouter.Use(api.CORSMiddleware())
+	// CORS might not be strictly necessary for same-origin, but good to keep if we want to allow external access or dev mode
+	router.Use(api.CORSMiddleware())
 
-	v1 := apiRouter.Group("/api/v1")
+	// API Routes
+	v1 := router.Group("/api/v1")
 	{
 		v1.GET("/config", server.GetConfig)
 		v1.PUT("/config", server.UpdateConfig)
@@ -81,74 +103,30 @@ func main() {
 		v1.GET("/version", server.GetVersion)
 	}
 
-	// --- Web Server ---
-	webRouter := gin.New()
-	webRouter.Use(gin.Recovery())
-	webRouter.Use(gin.Logger())
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	webRouter.StaticFS("/static", http.Dir("../../../frontend/src"))
+	// Web Routes
+	router.StaticFS("/static", http.Dir("../../../frontend/src"))
 
-	webRouter.GET("/", func(c *gin.Context) {
+	router.GET("/", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, "/static/index.html")
 	})
 
 	// Serve env.js to configure API URL
-	webRouter.GET("/env.js", func(c *gin.Context) {
-		// In a real scenario, this might be dynamic based on external URL
-		// For now, we assume the API is on the same host but different port
-		// If accessed via k8s service/ingress, this logic might need adjustment
-		// But for local/docker, this works.
-		// Actually, for browser access, we need the public URL.
-		// Let's assume relative URL doesn't work across ports.
-		// We can try to infer from request host, but port is different.
-		// Let's just set it to empty string if we want to use relative path (same origin),
-		// but here we are different origin (port).
-		// So we need absolute URL.
-		// Or we can use a proxy? No, user asked to dissociate.
-
-		// Simple approach: Use the same hostname as the request, but change the port.
-		// host := c.Request.Host // e.g. localhost:8080
-		// We need to strip port and add API port
-		// This is a bit hacky for production behind ingress, but works for direct access.
-		// For production, we might want an env var for PUBLIC_API_URL.
-
-		publicApiUrl := os.Getenv("PUBLIC_API_URL")
-		if publicApiUrl == "" {
-			// Fallback to constructing from request
-			// This assumes http (not https) if not specified, which might be wrong.
-			// But for internal/local it's fine.
-			// scheme := "http"
-			// if c.Request.TLS != nil {
-			// 	scheme = "https"
-			// }
-			// If behind a proxy, X-Forwarded-Proto might be needed.
-
-			// Let's just return a script that constructs it client side if possible?
-			// No, client side doesn't know the API port unless we tell it.
-			// So we must tell it the API port.
-
-			// We'll just inject the API_PORT into the JS and let JS construct the URL
-			// using window.location.hostname
-			c.Header("Content-Type", "application/javascript")
-			c.String(http.StatusOK, fmt.Sprintf(`window.env = { API_PORT: "%s", API_URL: "" };
-if (!window.env.API_URL) {
-	window.env.API_URL = window.location.protocol + "//" + window.location.hostname + ":%s";
-}`, apiPort, apiPort))
-			return
-		}
+	router.GET("/env.js", func(c *gin.Context) {
+		// Since we are now serving from the same origin, API_URL can be empty (relative path)
+		// or we can explicitly set it to the current origin if needed.
+		// Empty string usually implies "same origin" in our frontend logic if we update it,
+		// or we can just let it be empty and frontend uses relative paths?
+		// The frontend code uses `${window.env.API_URL}/api/v1/...`
+		// If API_URL is "", it becomes `/api/v1/...` which is correct for same origin.
 
 		c.Header("Content-Type", "application/javascript")
-		c.String(http.StatusOK, fmt.Sprintf(`window.env = { API_URL: "%s" };`, publicApiUrl))
+		c.String(http.StatusOK, `window.env = { API_URL: "" };`)
 	})
 
-	// Run servers in goroutines
-	go func() {
-		if err := apiRouter.Run(":" + apiPort); err != nil {
-			panic(fmt.Sprintf("API server failed: %v", err))
-		}
-	}()
-
-	if err := webRouter.Run(":" + webPort); err != nil {
-		panic(fmt.Sprintf("Web server failed: %v", err))
+	// Run server
+	if err := router.Run(":" + webPort); err != nil {
+		panic(fmt.Sprintf("Server failed: %v", err))
 	}
 }

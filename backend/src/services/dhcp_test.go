@@ -74,14 +74,14 @@ func TestDHCPService_AddReservation_Uppercase(t *testing.T) {
 	dhcpService := NewDHCPService(clientset, "default", configService)
 
 	// Add with lowercase
-	err = dhcpService.AddReservation(context.Background(), "00:0c:29:1c:bf:3b", "192.168.1.100", "my-host", "")
+	err = dhcpService.AddReservation(context.Background(), "AA:BB:CC:DD:EE:FF", "192.168.1.100", "test-host", "", "test comment")
 	// Ignore error from ReloadDnsmasq if any, or check if it's specific error
 	// assert.NoError(t, err)
 
 	content, err := ioutil.ReadFile(resFile.Name())
 	assert.NoError(t, err)
 	// Expect uppercase in file
-	assert.Contains(t, string(content), "00:0C:29:1C:BF:3B")
+	assert.Contains(t, string(content), "AA:BB:CC:DD:EE:FF")
 }
 
 func TestDHCPService_GetReservations_Uppercase(t *testing.T) {
@@ -90,7 +90,7 @@ func TestDHCPService_GetReservations_Uppercase(t *testing.T) {
 	defer os.Remove(resFile.Name())
 
 	// Write lowercase
-	_, err = resFile.WriteString("dhcp-host=my-host,00:0c:29:1c:bf:3b,192.168.1.100\n")
+	_, err = resFile.WriteString("dhcp-host=00:0c:29:1c:bf:3b,192.168.1.100,my-host\n")
 	assert.NoError(t, err)
 	resFile.Close()
 
@@ -112,7 +112,7 @@ func TestDHCPService_UpdateReservation_Uppercase(t *testing.T) {
 	defer os.Remove(resFile.Name())
 
 	// Write initial
-	_, err = resFile.WriteString("dhcp-host=my-host,00:0C:29:1C:BF:3B,192.168.1.100\n")
+	_, err = resFile.WriteString("dhcp-host=00:0C:29:1C:BF:3B,192.168.1.100,my-host\n")
 	assert.NoError(t, err)
 	resFile.Close()
 

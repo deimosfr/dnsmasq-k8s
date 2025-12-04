@@ -50,6 +50,37 @@ func (s *ConfigService) GetConfig(ctx context.Context) (string, error) {
 	return string(content), nil
 }
 
+func (s *ConfigService) GetTags(ctx context.Context) ([]string, error) {
+	content, err := ioutil.ReadFile(s.configFile)
+	if err != nil {
+		return nil, err
+	}
+
+	tags := make(map[string]bool)
+	lines := strings.Split(string(content), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		// dhcp-option=tag:specialhosts,option:dns-server,8.8.8.8,8.8.4.4
+		if strings.HasPrefix(line, "dhcp-option=") {
+			parts := strings.Split(strings.TrimPrefix(line, "dhcp-option="), ",")
+			for _, part := range parts {
+				if strings.HasPrefix(part, "tag:") {
+					tag := strings.TrimPrefix(part, "tag:")
+					if tag != "" {
+						tags[tag] = true
+					}
+				}
+			}
+		}
+	}
+
+	var tagList []string
+	for tag := range tags {
+		tagList = append(tagList, tag)
+	}
+	return tagList, nil
+}
+
 func (s *ConfigService) UpdateConfig(ctx context.Context, config string) error {
 	if err := s.validateDnsmasqConfig(config); err != nil {
 		return fmt.Errorf("dnsmasq configuration validation failed: %v", err)

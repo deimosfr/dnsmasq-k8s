@@ -68,7 +68,7 @@ A modern, lightweight web interface for managing **dnsmasq** DNS and DHCP servic
 
    ```bash
    helm repo add dnsmasq-k8s https://deimosfr.github.io/dnsmasq-k8s/
-   helm install dnsmasq-k8s dnsmasq-k8s/dnsmasq-k8s --version 1.2.0
+   helm install dnsmasq-k8s dnsmasq-k8s/dnsmasq-k8s --version 1.3.0
    ```
 
 2. **Verify the installation**:
@@ -86,7 +86,7 @@ replicaCount: 1
 image:
   repository: deimosfr/dnsmasq-k8s
   pullPolicy: IfNotPresent
-  tag: "1.2.0"
+  tag: "1.3.0"
 
 hostNetwork: true
 

@@ -1,9 +1,9 @@
 replicaCount: 1
 
 image:
-  repository: deimosfr/dnsmasq-k8s-ui
+  repository: deimosfr/dnsmasq-k8s
   pullPolicy: IfNotPresent
-  tag: "1.2.0"
+  tag: "1.3.0"
 
 hostNetwork: true
 

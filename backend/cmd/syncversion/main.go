@@ -83,8 +83,12 @@ func updateReadme(version string) error {
 	}
 
 	// Update tag: "..."
-	re := regexp.MustCompile(`tag: ".*"`)
-	strContent := re.ReplaceAllString(string(content), fmt.Sprintf("tag: \"%s\"", version))
+	reTag := regexp.MustCompile(`tag: ".*"`)
+	strContent := reTag.ReplaceAllString(string(content), fmt.Sprintf("tag: \"%s\"", version))
+
+	// Update helm install --version ...
+	reHelm := regexp.MustCompile(`--version \d+\.\d+\.\d+`)
+	strContent = reHelm.ReplaceAllString(strContent, fmt.Sprintf("--version %s", version))
 
 	return os.WriteFile(readmeFile, []byte(strContent), 0644)
 }

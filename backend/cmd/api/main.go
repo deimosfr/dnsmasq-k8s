@@ -84,6 +84,7 @@ func main() {
 	v1 := router.Group("/api/v1")
 	{
 		v1.GET("/config", server.GetConfig)
+		v1.GET("/config/tags", server.GetTags)
 		v1.PUT("/config", server.UpdateConfig)
 		v1.POST("/dns/entries", server.AddDNSEntry)
 		v1.GET("/dns/entries", server.GetDNSEntries)

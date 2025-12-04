@@ -31,7 +31,7 @@ dhcp-range=192.168.0.100,192.168.94.200,24h
 # Set gateway
 dhcp-option=3,192.168.0.1
 # Set DNS servers for DHCP clients
-dhcp-option=6,192.168.0.1
+dhcp-option=6,192.168.0.1,8.8.8.8
 # Enable DHCP authoritative mode
 dhcp-authoritative
 # Push search domain to DHCP
@@ -61,6 +61,9 @@ function renderConfigEdit(config) {
         const newConfig = document.getElementById('config-textarea').value;
         try {
             await updateConfig(newConfig);
+            if (window.showRestartBanner) {
+                window.showRestartBanner();
+            }
             alert('Configuration saved successfully!');
             switchToViewMode();
         } catch (error) {

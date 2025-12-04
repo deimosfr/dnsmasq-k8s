@@ -12,6 +12,7 @@ type AddReservationRequest struct {
 	MACAddress string `json:"mac_address"`
 	IPAddress  string `json:"ip_address"`
 	Hostname   string `json:"hostname"`
+	Tag        string `json:"tag"`
 	Comment    string `json:"comment"`
 }
 
@@ -89,7 +90,7 @@ func (s *Server) AddReservation(c *gin.Context) {
 		return
 	}
 
-	err := s.dhcpService.AddReservation(c.Request.Context(), json.MACAddress, json.IPAddress, json.Hostname, json.Comment)
+	err := s.dhcpService.AddReservation(c.Request.Context(), json.MACAddress, json.IPAddress, json.Hostname, json.Tag, json.Comment)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

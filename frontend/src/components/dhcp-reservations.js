@@ -49,15 +49,18 @@ document.getElementById('add-reservation-form').addEventListener('submit', async
     const macAddress = document.getElementById('mac-address').value;
     const ipAddress = document.getElementById('ip-address').value;
     const hostname = document.getElementById('hostname').value;
+    const tag = document.getElementById('tag').value;
     const comment = document.getElementById('comment').value;
 
-    await addReservation(macAddress, ipAddress, hostname, comment);
+    await addReservation(macAddress, ipAddress, hostname, tag, comment);
     document.getElementById('add-reservation-form').reset();
+    // Reset tag to None
+    document.getElementById('tag').value = 'None';
     displayReservations();
     showRestartBanner();
 });
 
-async function addReservation(macAddress, ipAddress, hostname, comment) {
+window.addReservation = async function(macAddress, ipAddress, hostname, tag, comment) {
     const response = await fetch(`${window.env.API_URL}/api/v1/dhcp/reservations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -65,6 +68,7 @@ async function addReservation(macAddress, ipAddress, hostname, comment) {
             mac_address: macAddress,
             ip_address: ipAddress,
             hostname: hostname,
+            tag: tag,
             comment: comment,
         }),
     });
@@ -74,10 +78,35 @@ async function addReservation(macAddress, ipAddress, hostname, comment) {
     }
 }
 
-async function getReservations() {
+window.getReservations = async function() {
     const response = await fetch(`${window.env.API_URL}/api/v1/dhcp/reservations`);
     const data = await response.json();
     return data.reservations;
+}
+
+window.getTags = async function() {
+    const response = await fetch(`${window.env.API_URL}/api/v1/config/tags`);
+    const data = await response.json();
+    return data.tags || [];
+}
+
+async function populateTagSelectors() {
+    const tags = await getTags();
+    const selectors = ['tag', 'modal-tag'];
+    
+    selectors.forEach(selectorId => {
+        const selector = document.getElementById(selectorId);
+        if (selector) {
+            // Keep "None" option
+            selector.innerHTML = '<option value="None" selected>None</option>';
+            tags.forEach(tag => {
+                const option = document.createElement('option');
+                option.value = tag;
+                option.textContent = tag;
+                selector.appendChild(option);
+            });
+        }
+    });
 }
 
 async function displayReservations() {
@@ -91,7 +120,7 @@ async function displayReservations() {
     }
 
     if (!reservations || reservations.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center">No reservations found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">No reservations found</td></tr>';
         return;
     }
 
@@ -100,13 +129,18 @@ async function displayReservations() {
 
     sortedReservations.forEach((res, index) => {
         const row = document.createElement('tr');
+        const tagBadge = res.tag && res.tag !== 'None' 
+            ? `<span class="badge bg-success">${res.tag}</span>` 
+            : `<span class="badge bg-secondary">None</span>`;
+            
         row.innerHTML = `
             <td>${res.mac_address}</td>
             <td>${res.ip_address}</td>
             <td>${res.hostname}</td>
+            <td>${tagBadge}</td>
             <td>${res.comment || ''}</td>
             <td>
-                <i class="bi bi-pencil text-success me-3" style="cursor: pointer;" onclick="editReservation(${index}, '${res.mac_address}', '${res.ip_address}', '${res.hostname}', '${res.comment || ''}')"></i>
+                <i class="bi bi-pencil text-success me-3" style="cursor: pointer;" onclick="editReservation(${index}, '${res.mac_address}', '${res.ip_address}', '${res.hostname}', '${res.tag || 'None'}', '${res.comment || ''}')"></i>
                 <i class="bi bi-x-lg text-danger" style="cursor: pointer;" onclick="deleteReservation('${res.mac_address}', '${res.ip_address}', '${res.hostname}')"></i>
             </td>
         `;
@@ -117,17 +151,32 @@ async function displayReservations() {
     updateReservationsSortIcons(reservationsSortState.column, reservationsSortState.direction);
 }
 
-window.editReservation = function(index, mac, ip, hostname, comment) {
+window.editReservation = async function(index, mac, ip, hostname, tag, comment) {
     const tbody = document.getElementById('reservations-table-body');
     const row = tbody.children[index];
     
+    const tags = await getTags();
+    let tagOptions = '<option value="None">None</option>';
+    tags.forEach(t => {
+        tagOptions += `<option value="${t}" ${t === tag ? 'selected' : ''}>${t}</option>`;
+    });
+    // Ensure current tag is selected if it's "None"
+    if (tag === 'None' || !tag) {
+         tagOptions = tagOptions.replace('value="None"', 'value="None" selected');
+    }
+
     row.innerHTML = `
         <td><input type="text" class="form-control form-control-sm" id="edit-res-mac-${index}" value="${mac}"></td>
         <td><input type="text" class="form-control form-control-sm" id="edit-res-ip-${index}" value="${ip}"></td>
         <td><input type="text" class="form-control form-control-sm" id="edit-res-host-${index}" value="${hostname}"></td>
+        <td>
+            <select class="form-select form-select-sm" id="edit-res-tag-${index}">
+                ${tagOptions}
+            </select>
+        </td>
         <td><input type="text" class="form-control form-control-sm" id="edit-res-comment-${index}" value="${comment}"></td>
         <td>
-            <i class="bi bi-check-lg text-success me-3" style="cursor: pointer;" onclick="saveReservation(${index}, '${mac}', '${ip}', '${hostname}', '${comment}')"></i>
+            <i class="bi bi-check-lg text-success me-3" style="cursor: pointer;" onclick="saveReservation(${index}, '${mac}', '${ip}', '${hostname}', '${tag}', '${comment}')"></i>
             <i class="bi bi-x-circle text-secondary" style="cursor: pointer;" onclick="cancelReservationEdit()"></i>
         </td>
     `;
@@ -137,10 +186,11 @@ window.cancelReservationEdit = function() {
     displayReservations();
 }
 
-window.saveReservation = async function(index, oldMac, oldIp, oldHostname, oldComment) {
+window.saveReservation = async function(index, oldMac, oldIp, oldHostname, oldTag, oldComment) {
     const newMac = document.getElementById(`edit-res-mac-${index}`).value;
     const newIp = document.getElementById(`edit-res-ip-${index}`).value;
     const newHostname = document.getElementById(`edit-res-host-${index}`).value;
+    const newTag = document.getElementById(`edit-res-tag-${index}`).value;
     const newComment = document.getElementById(`edit-res-comment-${index}`).value;
 
     // Validation
@@ -164,8 +214,8 @@ window.saveReservation = async function(index, oldMac, oldIp, oldHostname, oldCo
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            old: { mac_address: oldMac, ip_address: oldIp, hostname: oldHostname, comment: oldComment },
-            new: { mac_address: newMac, ip_address: newIp, hostname: newHostname, comment: newComment }
+            old: { mac_address: oldMac, ip_address: oldIp, hostname: oldHostname, tag: oldTag, comment: oldComment },
+            new: { mac_address: newMac, ip_address: newIp, hostname: newHostname, tag: newTag, comment: newComment }
         }),
     });
 
@@ -187,4 +237,5 @@ window.deleteReservation = async function(mac, ip, hostname) {
 }
 
 // Initial load
+populateTagSelectors();
 displayReservations();

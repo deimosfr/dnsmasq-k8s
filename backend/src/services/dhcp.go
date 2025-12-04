@@ -36,6 +36,7 @@ type DHCPReservation struct {
 	MACAddress string `json:"mac_address"`
 	IPAddress  string `json:"ip_address"`
 	Hostname   string `json:"hostname"`
+	Tag        string `json:"tag"`
 	Comment    string `json:"comment"`
 }
 
@@ -108,6 +109,7 @@ func (s *DHCPService) GetReservations(ctx context.Context) ([]DHCPReservation, e
 		}
 
 		// dhcp-host=mac,ip,hostname OR dhcp-host=hostname,mac,ip
+		// Also supports set:tag
 		if strings.HasPrefix(line, "dhcp-host=") {
 			parts := strings.Split(strings.TrimPrefix(line, "dhcp-host="), ",")
 			if len(parts) >= 3 {
@@ -116,11 +118,13 @@ func (s *DHCPService) GetReservations(ctx context.Context) ([]DHCPReservation, e
 				}
 				for _, part := range parts {
 					part = strings.TrimSpace(part)
-					if strings.Contains(part, ":") {
+					if strings.Contains(part, ":") && !strings.HasPrefix(part, "set:") && !strings.HasPrefix(part, "tag:") && !strings.HasPrefix(part, "id:") {
 						res.MACAddress = strings.ToUpper(part)
 					} else if strings.Contains(part, ".") {
 						res.IPAddress = part
-					} else {
+					} else if strings.HasPrefix(part, "set:") {
+						res.Tag = strings.TrimPrefix(part, "set:")
+					} else if !strings.HasPrefix(part, "tag:") && !strings.HasPrefix(part, "id:") && !strings.HasPrefix(part, "ignore") {
 						res.Hostname = part
 					}
 				}
@@ -133,7 +137,7 @@ func (s *DHCPService) GetReservations(ctx context.Context) ([]DHCPReservation, e
 	return reservations, nil
 }
 
-func (s *DHCPService) AddReservation(ctx context.Context, macAddress, ipAddress, hostname, comment string) error {
+func (s *DHCPService) AddReservation(ctx context.Context, macAddress, ipAddress, hostname, tag, comment string) error {
 	macAddress = strings.ToUpper(macAddress)
 	// Ensure directory exists
 	dir := filepath.Dir(s.reservationsFile)
@@ -150,12 +154,17 @@ func (s *DHCPService) AddReservation(ctx context.Context, macAddress, ipAddress,
 	}
 	// defer f.Close() // We close explicitly
 
-	line := fmt.Sprintf("\ndhcp-host=%s,%s,%s", hostname, macAddress, ipAddress)
+	// Format: dhcp-host=mac,[set:tag,]ip,hostname
+	line := fmt.Sprintf("\ndhcp-host=%s", macAddress)
+	if tag != "" && tag != "None" {
+		line += fmt.Sprintf(",set:%s", tag)
+	}
+	line += fmt.Sprintf(",%s,%s", ipAddress, hostname)
+
 	if comment != "" {
 		line += fmt.Sprintf(" # %s", comment)
 	}
 
-	// Write in format: dhcp-host=hostname,mac,ip
 	if _, err := f.WriteString(line); err != nil {
 		return err
 	}
@@ -196,21 +205,30 @@ func (s *DHCPService) modifyReservation(ctx context.Context, target, newRes DHCP
 				currentRes := DHCPReservation{}
 				for _, part := range parts {
 					part = strings.TrimSpace(part)
-					if strings.Contains(part, ":") {
+					if strings.Contains(part, ":") && !strings.HasPrefix(part, "set:") && !strings.HasPrefix(part, "tag:") && !strings.HasPrefix(part, "id:") {
 						currentRes.MACAddress = part
 					} else if strings.Contains(part, ".") {
 						currentRes.IPAddress = part
-					} else {
+					} else if strings.HasPrefix(part, "set:") {
+						currentRes.Tag = strings.TrimPrefix(part, "set:")
+					} else if !strings.HasPrefix(part, "tag:") && !strings.HasPrefix(part, "id:") && !strings.HasPrefix(part, "ignore") {
 						currentRes.Hostname = part
 					}
 				}
 
+				// Compare MAC, IP, Hostname. Tag might change, so we don't use it for identification unless strictly needed.
+				// But user might want to change tag.
 				if strings.EqualFold(currentRes.MACAddress, target.MACAddress) && currentRes.IPAddress == target.IPAddress && currentRes.Hostname == target.Hostname {
 					found = true
 					if !isDelete {
 						newRes.MACAddress = strings.ToUpper(newRes.MACAddress)
-						// Write in format: dhcp-host=hostname,mac,ip
-						newLine := fmt.Sprintf("dhcp-host=%s,%s,%s", newRes.Hostname, newRes.MACAddress, newRes.IPAddress)
+						// Write in format: dhcp-host=mac,[set:tag,]ip,hostname
+						newLine := fmt.Sprintf("dhcp-host=%s", newRes.MACAddress)
+						if newRes.Tag != "" && newRes.Tag != "None" {
+							newLine += fmt.Sprintf(",set:%s", newRes.Tag)
+						}
+						newLine += fmt.Sprintf(",%s,%s", newRes.IPAddress, newRes.Hostname)
+
 						if newRes.Comment != "" {
 							newLine += fmt.Sprintf(" # %s", newRes.Comment)
 						}

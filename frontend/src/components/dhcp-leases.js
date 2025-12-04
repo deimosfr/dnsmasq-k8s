@@ -50,7 +50,10 @@ async function getLeases() {
 }
 
 async function displayLeases() {
-    const leases = await getLeases();
+    const [leases, reservations] = await Promise.all([
+        getLeases(),
+        window.getReservations ? window.getReservations() : Promise.resolve([])
+    ]);
     const tbody = document.getElementById('leases-table-body');
     tbody.innerHTML = '';
 
@@ -92,6 +95,11 @@ async function displayLeases() {
             hour12: false 
         });
 
+        const isReserved = reservations && reservations.some(r => r.mac_address === lease.mac_address);
+        const addBtnClass = isReserved ? 'text-secondary' : 'text-primary';
+        const addBtnStyle = isReserved ? 'cursor: not-allowed; opacity: 0.5;' : 'cursor: pointer;';
+        const addBtnOnClick = isReserved ? '' : `onclick="openAddReservationModal('${lease.mac_address}', '${lease.ip_address}', '${lease.hostname}')"`;
+
         row.innerHTML = `
             <td>${lease.mac_address}</td>
             <td>${lease.ip_address}</td>
@@ -99,6 +107,7 @@ async function displayLeases() {
             <td><small>${expiryStr}</small></td>
             <td><span class="badge ${remainingMs > 0 ? 'bg-success' : 'bg-secondary'}">${remainingStr}</span></td>
             <td>
+                <i class="bi bi-plus-circle-fill ${addBtnClass} me-3" style="${addBtnStyle}" ${addBtnOnClick} title="${isReserved ? 'Already reserved' : 'Add reservation'}"></i>
                 <i class="bi bi-pencil text-success me-3" style="cursor: pointer;" onclick="editLease(${index}, '${lease.mac_address}', '${lease.ip_address}', '${lease.hostname}')"></i>
                 <i class="bi bi-x-lg text-danger" style="cursor: pointer;" onclick="deleteLease('${lease.mac_address}', '${lease.ip_address}', '${lease.hostname}')"></i>
             </td>
@@ -188,5 +197,48 @@ window.deleteLease = async function(mac, ip, hostname) {
     displayLeases();
     showRestartBanner();
 }
+
+window.openAddReservationModal = function(mac, ip, hostname) {
+    document.getElementById('modal-mac-address').value = mac;
+    document.getElementById('modal-ip-address').value = ip;
+    document.getElementById('modal-hostname').value = hostname;
+    document.getElementById('modal-comment').value = '';
+    const tagSelect = document.getElementById('modal-tag');
+    if (tagSelect) tagSelect.value = 'None';
+    
+    const modal = new bootstrap.Modal(document.getElementById('addReservationModal'));
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const addBtn = document.getElementById('modal-add-btn');
+    if (addBtn) {
+        addBtn.addEventListener('click', async () => {
+            const mac = document.getElementById('modal-mac-address').value;
+            const ip = document.getElementById('modal-ip-address').value;
+            const hostname = document.getElementById('modal-hostname').value;
+            const tag = document.getElementById('modal-tag').value;
+            const comment = document.getElementById('modal-comment').value;
+
+            if (window.addReservation) {
+                await window.addReservation(mac, ip, hostname, tag, comment);
+                
+                // Close modal
+                const modalEl = document.getElementById('addReservationModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) {
+                    modal.hide();
+                }
+                
+                // Refresh leases to update button state
+                displayLeases();
+                
+                // Switch to reservations tab to show the new entry
+                const reservationTab = new bootstrap.Tab(document.querySelector('#reservation-tab'));
+                reservationTab.show();
+            }
+        });
+    }
+});
 
 displayLeases();

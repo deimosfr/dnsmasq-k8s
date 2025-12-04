@@ -42,6 +42,24 @@ func (s *Server) GetConfig(c *gin.Context) {
 	c.String(http.StatusOK, config)
 }
 
+// GetTags returns all available tags from the configuration
+// @Summary      Get tags
+// @Description  Returns all available tags from the configuration
+// @Tags         config
+// @Produce      json
+// @Success      200  {array}   string
+// @Failure      500  {object}  map[string]string
+// @Router       /config/tags [get]
+func (s *Server) GetTags(c *gin.Context) {
+	tags, err := s.configService.GetTags(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"tags": tags})
+}
+
 // UpdateConfig updates the dnsmasq configuration
 // @Summary      Update configuration
 // @Description  Updates the dnsmasq configuration

@@ -49,18 +49,18 @@ dhcp-host=AA:BB:CC:DD:EE:00,192.168.1.13,host4
 	assert.Equal(t, "", reservations[3].Comment)
 
 	// Test AddReservation with comment
-	err = service.AddReservation(context.Background(), "00:11:22:33:44:55", "192.168.1.20", "newhost", "New comment")
+	err = service.AddReservation(context.Background(), "AA:BB:CC:DD:EE:FF", "192.168.1.100", "test-host", "", "Initial comment")
 	assert.NoError(t, err)
 
 	reservations, err = service.GetReservations(context.Background())
 	assert.NoError(t, err)
 	assert.Len(t, reservations, 5)
-	assert.Equal(t, "New comment", reservations[4].Comment)
+	assert.Equal(t, "Initial comment", reservations[4].Comment)
 
 	// Verify file content
 	newContent, err := os.ReadFile(reservationsFile)
 	assert.NoError(t, err)
-	assert.Contains(t, string(newContent), "dhcp-host=newhost,00:11:22:33:44:55,192.168.1.20 # New comment")
+	assert.Contains(t, string(newContent), "dhcp-host=AA:BB:CC:DD:EE:FF,192.168.1.100,test-host # Initial comment")
 }
 
 func TestDNSEntryComments(t *testing.T) {

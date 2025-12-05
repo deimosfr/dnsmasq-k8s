@@ -15,6 +15,8 @@ log-facility=-
 conf-dir=/etc/dnsmasq.d
 
 ## DNS
+# Disable DNS
+# port=0
 # Set domain for local network
 domain=mydomain.local
 # Cache size

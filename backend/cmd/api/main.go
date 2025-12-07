@@ -102,6 +102,7 @@ func main() {
 		v1.POST("/supervisor/:service/stop", server.StopSupervisorService)
 		v1.POST("/supervisor/:service/restart", server.RestartSupervisorService)
 		v1.GET("/version", server.GetVersion)
+		v1.GET("/navbar", server.GetNavbar)
 	}
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

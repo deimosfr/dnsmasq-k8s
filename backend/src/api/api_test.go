@@ -101,3 +101,23 @@ func TestGetLeases(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 }
+
+func TestGetNavbar(t *testing.T) {
+	clientset := fake.NewSimpleClientset()
+	configService := services.NewConfigService(clientset, "default")
+	dhcpService := services.NewDHCPService(clientset, "default", configService)
+	statusService := services.NewStatusService()
+	supervisorService := services.NewSupervisorService()
+	server := NewServer(configService, dhcpService, statusService, supervisorService)
+
+	r := gin.Default()
+	r.GET("/navbar", server.GetNavbar)
+
+	req, _ := http.NewRequest("GET", "/navbar", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "Home")
+	assert.Contains(t, w.Body.String(), "Config")
+}

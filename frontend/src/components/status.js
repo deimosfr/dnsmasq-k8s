@@ -86,37 +86,9 @@ function renderStatus(status) {
         [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl, { trigger: 'hover' }));
     }
 
-    updateNavbar(status);
 }
 
-function updateNavbar(status) {
-    const dnsNavItem = document.getElementById('nav-item-dns');
-    const dhcpNavItem = document.getElementById('nav-item-dhcp');
 
-    if (dnsNavItem) {
-        if (status.dns) {
-            dnsNavItem.style.display = 'block';
-        } else {
-            dnsNavItem.style.display = 'none';
-            // Redirect if on DNS page and it's disabled
-            if (window.location.pathname.includes('/dns.html')) {
-                window.location.href = '/static/index.html';
-            }
-        }
-    }
-
-    if (dhcpNavItem) {
-        if (status.dhcp) {
-            dhcpNavItem.style.display = 'block';
-        } else {
-            dhcpNavItem.style.display = 'none';
-            // Redirect if on DHCP page and it's disabled
-            if (window.location.pathname.includes('/dhcp.html')) {
-                window.location.href = '/static/index.html';
-            }
-        }
-    }
-}
 
 async function displayStatus() {
     try {

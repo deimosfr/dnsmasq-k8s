@@ -5,6 +5,8 @@ metadata:
   name: {{ include "dnsmasq-k8s.fullname" . }}
   labels:
     {{- include "dnsmasq-k8s.labels" . | nindent 4 }}
+  annotations:
+    {{ .Values.httpRoute.annotations | toYaml | nindent 4 }}
 spec:
   parentRefs:
     {{- toYaml .Values.httpRoute.parentRefs | nindent 4 }}

@@ -250,3 +250,70 @@ body {
   }
 }
 
+
+/* Mobile Card View for Tables */
+@media (max-width: 768px) {
+  /* Force table to not be table-like */
+  .table-responsive table,
+  .table-responsive thead,
+  .table-responsive tbody,
+  .table-responsive th,
+  .table-responsive td,
+  .table-responsive tr {
+    display: block;
+  }
+
+  /* Hide table headers (but not display: none;, for accessibility) */
+  .table-responsive thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  /* Card styling for rows */
+  .table-responsive tr {
+    border: 1px solid var(--border-color);
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background-color: var(--bg-card);
+  }
+
+  /* Cell styling */
+  .table-responsive td {
+    /* Behave like a "row" */
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+    padding-left: 50% !important; /* Make space for label */
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    text-align: right;
+  }
+  
+  .table-responsive td:last-child {
+      border-bottom: none;
+  }
+  
+  /* Label styling */
+  .table-responsive td:before {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0.75rem;
+    width: 45%; 
+    padding-right: 10px; 
+    white-space: nowrap;
+    text-align: left;
+    font-weight: bold;
+    content: attr(data-label);
+    color: var(--text-secondary);
+  }
+  
+
+}

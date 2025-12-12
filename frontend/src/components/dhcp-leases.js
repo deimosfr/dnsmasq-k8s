@@ -101,12 +101,12 @@ async function displayLeases() {
         const addBtnOnClick = isReserved ? '' : `onclick="openAddReservationModal('${lease.mac_address}', '${lease.ip_address}', '${lease.hostname}')"`;
 
         row.innerHTML = `
-            <td>${lease.mac_address}</td>
-            <td>${lease.ip_address}</td>
-            <td>${lease.hostname}</td>
-            <td><small>${expiryStr}</small></td>
-            <td><span class="badge ${remainingMs > 0 ? 'bg-success' : 'bg-secondary'}">${remainingStr}</span></td>
-            <td>
+            <td data-label="MAC Address">${lease.mac_address}</td>
+            <td data-label="IP Address">${lease.ip_address}</td>
+            <td data-label="Hostname">${lease.hostname}</td>
+            <td data-label="Expires"><small>${expiryStr}</small></td>
+            <td data-label="Remaining"><span class="badge ${remainingMs > 0 ? 'bg-success' : 'bg-secondary'}">${remainingStr}</span></td>
+            <td data-label="Actions">
                 <i class="bi bi-plus-circle-fill ${addBtnClass} me-3" style="${addBtnStyle}" ${addBtnOnClick} title="${isReserved ? 'Already reserved' : 'Add reservation'}"></i>
                 <i class="bi bi-pencil text-success me-3" style="cursor: pointer;" onclick="editLease(${index}, '${lease.mac_address}', '${lease.ip_address}', '${lease.hostname}')"></i>
                 <i class="bi bi-x-lg text-danger" style="cursor: pointer;" onclick="deleteLease('${lease.mac_address}', '${lease.ip_address}', '${lease.hostname}')"></i>
@@ -133,11 +133,11 @@ window.editLease = function(index, mac, ip, hostname) {
     const row = tbody.children[index];
     
     row.innerHTML = `
-        <td><input type="text" class="form-control form-control-sm" id="edit-lease-mac-${index}" value="${mac}"></td>
-        <td><input type="text" class="form-control form-control-sm" id="edit-lease-ip-${index}" value="${ip}"></td>
-        <td><input type="text" class="form-control form-control-sm" id="edit-lease-host-${index}" value="${hostname}"></td>
-        <td colspan="2"></td>
-        <td>
+        <td data-label="MAC Address"><input type="text" class="form-control form-control-sm" id="edit-lease-mac-${index}" value="${mac}"></td>
+        <td data-label="IP Address"><input type="text" class="form-control form-control-sm" id="edit-lease-ip-${index}" value="${ip}"></td>
+        <td data-label="Hostname"><input type="text" class="form-control form-control-sm" id="edit-lease-host-${index}" value="${hostname}"></td>
+        <td colspan="2" class="d-md-table-cell d-none"></td>
+        <td data-label="Actions">
             <i class="bi bi-check-lg text-success me-3" style="cursor: pointer;" onclick="saveLease(${index}, '${mac}', '${ip}', '${hostname}')"></i>
             <i class="bi bi-x-circle text-secondary" style="cursor: pointer;" onclick="cancelLeaseEdit()"></i>
         </td>

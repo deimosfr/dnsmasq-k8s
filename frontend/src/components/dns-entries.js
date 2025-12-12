@@ -168,11 +168,11 @@ async function displayDNSEntries() {
         const escapedValue = entry.value.replace(/'/g, '&#39;');
         
         row.innerHTML = `
-            <td>${displayType}</td>
-            <td>${entry.domain}</td>
-            <td>${entry.value}</td>
-            <td>${entry.comment || ''}</td>
-            <td>
+            <td data-label="Type">${displayType}</td>
+            <td data-label="Domain">${entry.domain}</td>
+            <td data-label="Value">${entry.value}</td>
+            <td data-label="Comment">${entry.comment || ''}</td>
+            <td data-label="Actions">
                 <i class="bi bi-pencil text-success me-3" style="cursor: pointer;" onclick="editEntry(${index}, '${entry.type}', '${escapedDomain}', '${escapedValue}', '${entry.comment || ''}')"></i>
                 <i class="bi bi-x-lg text-danger" style="cursor: pointer;" onclick="deleteEntry('${entry.type}', '${escapedDomain}', '${escapedValue}')"></i>
             </td>
@@ -201,13 +201,13 @@ window.editEntry = function(index, type, domain, value, comment) {
     const unescapedValue = value.replace(/&#39;/g, "'");
     
     row.innerHTML = `
-        <td>
+        <td data-label="Type">
             <span class="form-control-plaintext form-control-sm">${displayType}</span>
         </td>
-        <td><input type="text" class="form-control form-control-sm" id="edit-domain-${index}" value="${unescapedDomain}"></td>
-        <td><input type="text" class="form-control form-control-sm" id="edit-value-${index}" value="${unescapedValue}"></td>
-        <td><input type="text" class="form-control form-control-sm" id="edit-comment-${index}" value="${comment}"></td>
-        <td>
+        <td data-label="Domain"><input type="text" class="form-control form-control-sm" id="edit-domain-${index}" value="${unescapedDomain}"></td>
+        <td data-label="Value"><input type="text" class="form-control form-control-sm" id="edit-value-${index}" value="${unescapedValue}"></td>
+        <td data-label="Comment"><input type="text" class="form-control form-control-sm" id="edit-comment-${index}" value="${comment}"></td>
+        <td data-label="Actions">
             <i class="bi bi-check-lg text-success me-3" style="cursor: pointer;" onclick="saveEntry(${index}, '${type}', '${domain}', '${value}', '${comment}')"></i>
             <i class="bi bi-x-circle text-secondary" style="cursor: pointer;" onclick="cancelEdit()"></i>
         </td>

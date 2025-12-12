@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const Version = "1.3.3"
+const Version = "1.4.0"
 
 // GetVersion returns the current version of the application
 // @Summary      Get application version

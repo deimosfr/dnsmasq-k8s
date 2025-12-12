@@ -4,6 +4,43 @@ async function getStatus() {
     return data;
 }
 
+function formatPrettyUptime(raw) {
+    if (!raw) return '';
+    // raw might be "0:00:10" or "1 day, 0:00:10" or "2 days, 1:00:00"
+    
+    // Remove trailing commas if any
+    raw = raw.replace(/,/g, '');
+    
+    let days = 0;
+    let timeStr = raw;
+    
+    if (raw.includes('day')) {
+        const parts = raw.split(' day'); 
+        days = parseInt(parts[0]);
+        // parts[1] might be "s, 0:00:10" or ", 0:00:10"
+        const remaining = parts[1].trim(); 
+        // If it starts with 's', remove it (for "days")
+        const timeParts = remaining.replace(/^s\s+/, '').trim().split(' ');
+        timeStr = timeParts[timeParts.length - 1]; // Last part should be HH:MM:SS
+    }
+    
+    const [h, m, s] = timeStr.split(':').map(Number);
+    
+    let result = [];
+    if (days > 0) result.push(`${days}d`);
+    if (h > 0) result.push(`${h}h`);
+    if (m > 0) result.push(`${m}m`);
+    // Show seconds only if total time is less than a minute, to be concise
+    if (days === 0 && h === 0 && m === 0) {
+         if (s > 0 || result.length === 0) result.push(`${s}s`);
+    } else if (result.length === 0) {
+        // Fallback
+        result.push(`${s}s`);
+    }
+    
+    return result.join(' ');
+}
+
 function renderStatus(status) {
 
     const dnsStatusDiv = document.getElementById('dns-status');
@@ -47,7 +84,9 @@ function renderStatus(status) {
             // Parse uptime if available (usually after "uptime")
             const uptimeIndex = parts.indexOf('uptime');
             if (uptimeIndex !== -1 && uptimeIndex + 1 < parts.length) {
-                uptime = parts[uptimeIndex + 1].replace(',', '');
+                // Join all parts after 'uptime' to get the full string (e.g., "1 day, 0:00:10")
+                const rawUptime = parts.slice(uptimeIndex + 1).join(' ');
+                uptime = formatPrettyUptime(rawUptime);
             }
 
             let badgeClass = 'bg-secondary';

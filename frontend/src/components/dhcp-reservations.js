@@ -134,12 +134,12 @@ async function displayReservations() {
             : `<span class="badge bg-secondary">None</span>`;
             
         row.innerHTML = `
-            <td>${res.mac_address}</td>
-            <td>${res.ip_address}</td>
-            <td>${res.hostname}</td>
-            <td>${tagBadge}</td>
-            <td>${res.comment || ''}</td>
-            <td>
+            <td data-label="MAC Address">${res.mac_address}</td>
+            <td data-label="IP Address">${res.ip_address}</td>
+            <td data-label="Hostname">${res.hostname}</td>
+            <td data-label="Tag">${tagBadge}</td>
+            <td data-label="Comment">${res.comment || ''}</td>
+            <td data-label="Actions">
                 <i class="bi bi-pencil text-success me-3" style="cursor: pointer;" onclick="editReservation(${index}, '${res.mac_address}', '${res.ip_address}', '${res.hostname}', '${res.tag || 'None'}', '${res.comment || ''}')"></i>
                 <i class="bi bi-x-lg text-danger" style="cursor: pointer;" onclick="deleteReservation('${res.mac_address}', '${res.ip_address}', '${res.hostname}')"></i>
             </td>
@@ -166,16 +166,16 @@ window.editReservation = async function(index, mac, ip, hostname, tag, comment) 
     }
 
     row.innerHTML = `
-        <td><input type="text" class="form-control form-control-sm" id="edit-res-mac-${index}" value="${mac}"></td>
-        <td><input type="text" class="form-control form-control-sm" id="edit-res-ip-${index}" value="${ip}"></td>
-        <td><input type="text" class="form-control form-control-sm" id="edit-res-host-${index}" value="${hostname}"></td>
-        <td>
+        <td data-label="MAC Address"><input type="text" class="form-control form-control-sm" id="edit-res-mac-${index}" value="${mac}"></td>
+        <td data-label="IP Address"><input type="text" class="form-control form-control-sm" id="edit-res-ip-${index}" value="${ip}"></td>
+        <td data-label="Hostname"><input type="text" class="form-control form-control-sm" id="edit-res-host-${index}" value="${hostname}"></td>
+        <td data-label="Tag">
             <select class="form-select form-select-sm" id="edit-res-tag-${index}">
                 ${tagOptions}
             </select>
         </td>
-        <td><input type="text" class="form-control form-control-sm" id="edit-res-comment-${index}" value="${comment}"></td>
-        <td>
+        <td data-label="Comment"><input type="text" class="form-control form-control-sm" id="edit-res-comment-${index}" value="${comment}"></td>
+        <td data-label="Actions">
             <i class="bi bi-check-lg text-success me-3" style="cursor: pointer;" onclick="saveReservation(${index}, '${mac}', '${ip}', '${hostname}', '${tag}', '${comment}')"></i>
             <i class="bi bi-x-circle text-secondary" style="cursor: pointer;" onclick="cancelReservationEdit()"></i>
         </td>

@@ -1,0 +1,22 @@
+# Tasks
+
+- [x] Implement Basic Auth Check in Backend
+  - Verify `Authorization` header against file content.
+- [x] Update Helm Chart Values
+  - Add `auth` structure.
+- [x] Create Secret Template
+  - `templates/secret.yaml`
+- [x] Update Deployment Template
+  - Mount secret volume.
+- [x] Update README
+  - Document new auth features.
+- [x] Verify Helm Chart
+  - Fix linting errors in secret template.
+- [x] Debug Web UI Access
+  - Update spec and implementation to exclude static assets from auth.
+- [x] Fix Authentication UX
+  - Implement Frontend Auth Interceptor and Backend Login Endpoint.
+- [x] Refine Authentication Experience
+  - Implement Custom Login Page (`login.html`, `auth.js`).
+  - Suppress Browser Native Prompt (Custom Middleware).
+  - Polish Login UI (Theme Consistency).

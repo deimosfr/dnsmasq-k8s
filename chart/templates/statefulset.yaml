@@ -39,6 +39,10 @@ spec:
                   fieldPath: metadata.namespace
             - name: WEB_PORT
               value: "{{ .Values.web.port }}"
+            {{- if .Values.auth.enabled }}
+            - name: BASIC_AUTH_FILE
+              value: "/etc/auth/users.txt"
+            {{- end }}
 
           ports:
             - name: http
@@ -67,5 +71,15 @@ spec:
               port: http
             initialDelaySeconds: 5
             periodSeconds: 5
-          volumeMounts: []
-      volumes: []
+          volumeMounts:
+            {{- if .Values.auth.enabled }}
+            - name: auth-volume
+              mountPath: "/etc/auth"
+              readOnly: true
+            {{- end }}
+      volumes:
+        {{- if .Values.auth.enabled }}
+        - name: auth-volume
+          secret:
+            secretName: {{ if .Values.auth.existingSecret }}{{ .Values.auth.existingSecret }}{{ else }}{{ include "dnsmasq-k8s.fullname" . }}-auth{{ end }}
+        {{- end }}

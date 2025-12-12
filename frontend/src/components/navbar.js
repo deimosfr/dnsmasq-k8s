@@ -60,9 +60,18 @@ class Navbar extends HTMLElement {
               <ul class="navbar-nav">
                 ${navItemsHtml}
               </ul>
-              <button id="theme-toggle" class="ms-auto" title="Toggle theme">
-                <i class="bi bi-moon-fill"></i>
-              </button>
+              <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item">
+                    <button id="theme-toggle" class="btn btn-link nav-link" title="Toggle theme">
+                        <i class="bi bi-moon-fill"></i>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="Auth.logout(); return false;" title="Logout">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </a>
+                </li>
+              </ul>
             </div>
           </div>
         </nav>

@@ -31,7 +31,7 @@ window.initializeThemeToggle = function(themeToggleBtn) {
 
 // Apply theme immediately
 (function() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-bs-theme', savedTheme);
 })();
 

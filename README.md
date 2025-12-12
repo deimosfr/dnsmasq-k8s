@@ -26,6 +26,7 @@ A modern, lightweight web interface for managing **dnsmasq** DNS and DHCP servic
 - Easy management of DNS, DHCP, and Supervisor services
 - Quick service status overview
 - Dark/Light theme toggle
+- Basic Authentication support
 
 ### 🌐 DNS Management
 - **A Records**: Add, edit, and delete DNS A records with IP validation
@@ -68,7 +69,7 @@ A modern, lightweight web interface for managing **dnsmasq** DNS and DHCP servic
 
    ```bash
    helm repo add dnsmasq-k8s https://deimosfr.github.io/dnsmasq-k8s/
-   helm install dnsmasq-k8s dnsmasq-k8s/dnsmasq-k8s --version 1.3.3
+   helm install dnsmasq-k8s dnsmasq-k8s/dnsmasq-k8s --version 1.4.0
    ```
 
 2. **Verify the installation**:
@@ -86,7 +87,7 @@ replicaCount: 1
 image:
   repository: deimosfr/dnsmasq-k8s
   pullPolicy: IfNotPresent
-  tag: "1.3.3"
+  tag: "1.4.0"
 
 hostNetwork: true
 
@@ -114,6 +115,11 @@ securityContext:
   capabilities:
     add:
       - NET_ADMIN
+      
+auth:
+  enabled: true
+  users:
+    admin: "password"
 ```
 
 Install with custom values:

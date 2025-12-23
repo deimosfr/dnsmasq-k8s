@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: deimosfr/dnsmasq-k8s
   pullPolicy: IfNotPresent
-  tag: "1.4.0"
+  tag: "1.4.1"
 
 hostNetwork: true
 
@@ -46,3 +46,11 @@ auth:
   existingSecret: ""
   users:
     admin: "password"
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
